@@ -69,6 +69,8 @@ export const STATUS_PEMINJAMAN = [
 export type StatusPeminjaman = (typeof STATUS_PEMINJAMAN)[number]['v']
 export const namaStatusPeminjaman = (v: string) => STATUS_PEMINJAMAN.find((s) => s.v === v)?.l ?? v
 
+export type JenisPeminjaman = 'ruang' | 'alat'
+
 /** Stempel waktu Firestore (null sementara sebelum server mengisinya). */
 export interface Waktu {
   toDate(): Date
@@ -90,12 +92,21 @@ export interface Kerusakan {
   createdAt?: Waktu | null
 }
 
-/** Peminjaman ruangan. mulai/selesai disimpan sebagai ISO string (YYYY-MM-DDTHH:mm). */
+/**
+ * Peminjaman ruangan atau alat.
+ * - jenis 'ruang' (atau kosong untuk data lama): field ruangId wajib.
+ * - jenis 'alat': field asetId dan jumlahPinjam wajib; ruangId opsional/kosong.
+ * mulai/selesai: ISO lokal tanpa detik (YYYY-MM-DDTHH:mm).
+ */
 export interface Peminjaman {
   id: string
-  ruangId: string
+  /** 'ruang' | 'alat'. Data lama tanpa field ini dianggap 'ruang'. */
+  jenis?: JenisPeminjaman
+  ruangId?: string | null
+  asetId?: string | null
+  /** Jumlah unit alat yang dipinjam (hanya untuk jenis alat). */
+  jumlahPinjam?: number
   keperluan: string
-  /** ISO lokal tanpa detik, mis. 2026-10-20T08:00 */
   mulai: string
   selesai: string
   status: StatusPeminjaman
@@ -104,6 +115,10 @@ export interface Peminjaman {
   catatanAdmin?: string
   createdAt?: Waktu | null
   updatedAt?: Waktu | null
+}
+
+export function jenisPinjam(p: Peminjaman): JenisPeminjaman {
+  return p.jenis === 'alat' ? 'alat' : 'ruang'
 }
 
 export function formatTanggal(w?: Waktu | null) {
@@ -134,4 +149,27 @@ export function bentrokJadwal(mulaiA: string, selesaiA: string, mulaiB: string, 
   const b1 = new Date(selesaiB).getTime()
   if ([a0, a1, b0, b1].some((n) => Number.isNaN(n))) return false
   return a0 < b1 && b0 < a1
+}
+
+/**
+ * Jumlah unit alat yang sudah terpakai (diajukan/disetujui) pada rentang waktu,
+ * tidak termasuk id pengajuan yang diabaikan (untuk cek saat menyetujui sendiri).
+ */
+export function stokTerpakai(
+  semua: Peminjaman[],
+  asetId: string,
+  mulai: string,
+  selesai: string,
+  kecualiId?: string,
+) {
+  return semua
+    .filter(
+      (p) =>
+        p.id !== kecualiId &&
+        jenisPinjam(p) === 'alat' &&
+        p.asetId === asetId &&
+        (p.status === 'diajukan' || p.status === 'disetujui') &&
+        bentrokJadwal(mulai, selesai, p.mulai, p.selesai),
+    )
+    .reduce((n, p) => n + (p.jumlahPinjam ?? 1), 0)
 }

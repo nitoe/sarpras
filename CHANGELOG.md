@@ -2,6 +2,13 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.4.1 — Oktober 2026
+- Modul Peminjaman diperluas: selain ruangan, staf dapat meminjam **alat** (aset).
+- Form ajukan: pilih jenis Ruangan atau Alat; untuk alat pilih aset, jumlah unit, waktu, keperluan.
+- Cek stok alat: menghitung unit yang sudah diajukan/disetujui pada rentang waktu yang sama; pengajuan ditolak jika melebihi sisa stok.
+- Filter daftar menurut jenis (ruangan/alat); data lama tanpa field `jenis` tetap dianggap peminjaman ruangan.
+- Aset kategori Bangunan dan kondisi rusak berat tidak ditawarkan untuk dipinjam.
+
 ## 0.4.0 — Oktober 2026
 - Modul Peminjaman ruangan: staf mengajukan (ruang, waktu mulai–selesai, keperluan); admin menyetujui/menolak/menandai selesai; peminjam dapat membatalkan pengajuan sendiri.
 - Pencegahan bentrok jadwal: peringatan saat mengajukan atau menyetujui jika ada peminjaman lain (diajukan/disetujui) pada ruang dan waktu yang sama; pengajuan ditolak otomatis bila sudah ada yang disetujui.

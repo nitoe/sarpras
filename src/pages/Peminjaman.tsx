@@ -3,8 +3,9 @@ import { useAuth } from '../context/AuthContext'
 import { useKoleksi } from '../lib/useKoleksi'
 import { catat, simpanDoc } from '../lib/data'
 import {
-  STATUS_PEMINJAMAN, bentrokJadwal, formatRentang, formatTanggal, namaStatusPeminjaman,
-  type Peminjaman, type Ruang, type StatusPeminjaman,
+  STATUS_PEMINJAMAN, bentrokJadwal, formatRentang, formatTanggal, jenisPinjam,
+  namaKategori, namaStatusPeminjaman, stokTerpakai,
+  type Aset, type JenisPeminjaman, type Peminjaman, type Ruang, type StatusPeminjaman,
 } from '../lib/tipe'
 import { Field, Modal, Notice, PageHeader, StatStrip, btnDanger, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
@@ -29,7 +30,6 @@ const detik = (p: Peminjaman) => {
   return Number.isNaN(t) ? (p.createdAt?.toDate().getTime() ?? 0) : t
 }
 
-/** Nilai default datetime-local: sekarang dibulatkan ke jam berikutnya. */
 function defaultMulai() {
   const d = new Date()
   d.setMinutes(0, 0, 0)
@@ -49,20 +49,46 @@ function keLokal(d: Date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/** Aset yang boleh dipinjam: bukan bangunan, kondisi bukan rusak berat. */
+function asetBisaDipinjam(a: Aset) {
+  return a.kategori !== 'BGN' && a.kondisi !== 'rusak_berat' && a.jumlah > 0
+}
+
+function labelSasaran(p: Peminjaman, petaRuang: Map<string, Ruang>, petaAset: Map<string, Aset>) {
+  if (jenisPinjam(p) === 'alat') {
+    const a = p.asetId ? petaAset.get(p.asetId) : undefined
+    if (!a) return 'Alat (sudah dihapus)'
+    const jml = p.jumlahPinjam && p.jumlahPinjam > 1 ? ` ×${p.jumlahPinjam}` : ''
+    return `${a.nama}${jml}`
+  }
+  const r = p.ruangId ? petaRuang.get(p.ruangId) : undefined
+  return r?.nama ?? 'Ruang (sudah dihapus)'
+}
+
 export default function PeminjamanPage() {
   const { user, peran } = useAuth()
   const admin = peran === 'admin'
   const pinjam = useKoleksi<Peminjaman>('sarpras_peminjaman')
   const ruang = useKoleksi<Ruang>('sarpras_ruang')
+  const aset = useKoleksi<Aset>('sarpras_aset')
 
   const [fStatus, setFStatus] = useState('aktif')
+  const [fJenis, setFJenis] = useState('')
   const [fRuang, setFRuang] = useState('')
   const [saya, setSaya] = useState(false)
   const [baru, setBaru] = useState(false)
   const [pilih, setPilih] = useState<Peminjaman | null>(null)
 
   const petaRuang = useMemo(() => new Map(ruang.data.map((r) => [r.id, r])), [ruang.data])
+  const petaAset = useMemo(() => new Map(aset.data.map((a) => [a.id, a])), [aset.data])
   const ruangUrut = useMemo(() => [...ruang.data].sort((a, b) => a.kode.localeCompare(b.kode, 'id', { numeric: true })), [ruang.data])
+  const asetUrut = useMemo(
+    () =>
+      [...aset.data]
+        .filter(asetBisaDipinjam)
+        .sort((a, b) => a.nama.localeCompare(b.nama, 'id')),
+    [aset.data],
+  )
 
   const hitung = (s: StatusPeminjaman) => pinjam.data.filter((p) => p.status === s).length
 
@@ -74,10 +100,16 @@ export default function PeminjamanPage() {
           if (fStatus === 'semua') return true
           return p.status === fStatus
         })
-        .filter((p) => !fRuang || p.ruangId === fRuang)
+        .filter((p) => !fJenis || jenisPinjam(p) === fJenis)
+        .filter((p) => {
+          if (!fRuang) return true
+          if (jenisPinjam(p) === 'ruang') return p.ruangId === fRuang
+          const a = p.asetId ? petaAset.get(p.asetId) : undefined
+          return a?.ruangId === fRuang
+        })
         .filter((p) => !saya || p.peminjamUid === user?.uid)
         .sort((a, b) => detik(b) - detik(a)),
-    [pinjam.data, fStatus, fRuang, saya, user?.uid],
+    [pinjam.data, fStatus, fJenis, fRuang, saya, user?.uid, petaAset],
   )
 
   const terpilih = pilih ? (pinjam.data.find((p) => p.id === pilih.id) ?? pilih) : null
@@ -86,10 +118,12 @@ export default function PeminjamanPage() {
     <div className="mx-auto max-w-5xl">
       <PageHeader
         judul="Peminjaman"
-        keterangan="Ajukan dan kelola peminjaman ruangan"
+        keterangan="Ajukan dan kelola peminjaman ruangan atau alat"
         aksi={<button className={btnPrimary} onClick={() => setBaru(true)}>Ajukan peminjaman</button>}
       />
-      {(pinjam.galat || ruang.galat) && <Notice tipe="error">{pinjam.galat || ruang.galat}</Notice>}
+      {(pinjam.galat || ruang.galat || aset.galat) && (
+        <Notice tipe="error">{pinjam.galat || ruang.galat || aset.galat}</Notice>
+      )}
 
       <StatStrip
         items={[
@@ -100,13 +134,18 @@ export default function PeminjamanPage() {
         ]}
       />
 
-      <div className="mb-3 grid gap-2 sm:grid-cols-3">
+      <div className="mb-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <select className={inputCls} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
           <option value="aktif">Aktif (diajukan & disetujui)</option>
           <option value="semua">Semua status</option>
           {STATUS_PEMINJAMAN.map((s) => (
             <option key={s.v} value={s.v}>{s.l}</option>
           ))}
+        </select>
+        <select className={inputCls} value={fJenis} onChange={(e) => setFJenis(e.target.value)}>
+          <option value="">Semua jenis</option>
+          <option value="ruang">Ruangan</option>
+          <option value="alat">Alat</option>
         </select>
         <select className={inputCls} value={fRuang} onChange={(e) => setFRuang(e.target.value)}>
           <option value="">Semua ruang</option>
@@ -125,7 +164,7 @@ export default function PeminjamanPage() {
       ) : tampil.length === 0 ? (
         <div className="card-soft p-6 text-sm text-muted">
           {pinjam.data.length === 0
-            ? 'Belum ada peminjaman. Ajukan peminjaman ruangan untuk kegiatan sekolah.'
+            ? 'Belum ada peminjaman. Ajukan peminjaman ruangan atau alat untuk kegiatan sekolah.'
             : 'Tidak ada peminjaman yang cocok dengan filter.'}
         </div>
       ) : (
@@ -134,7 +173,7 @@ export default function PeminjamanPage() {
             <thead className="border-b border-border bg-surface-2 text-xs text-muted">
               <tr>
                 <th className="px-4 py-2.5 font-medium">Waktu</th>
-                <th className="px-4 py-2.5 font-medium">Ruang</th>
+                <th className="px-4 py-2.5 font-medium">Yang dipinjam</th>
                 <th className="hidden px-4 py-2.5 font-medium md:table-cell">Keperluan</th>
                 <th className="hidden px-4 py-2.5 font-medium sm:table-cell">Peminjam</th>
                 <th className="px-4 py-2.5 font-medium">Status</th>
@@ -148,7 +187,10 @@ export default function PeminjamanPage() {
                   onClick={() => setPilih(p)}
                 >
                   <td className="whitespace-nowrap px-4 py-2.5 text-muted">{formatRentang(p.mulai, p.selesai)}</td>
-                  <td className="px-4 py-2.5 font-medium">{petaRuang.get(p.ruangId)?.nama ?? '—'}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="font-medium">{labelSasaran(p, petaRuang, petaAset)}</div>
+                    <div className="text-xs text-muted">{jenisPinjam(p) === 'alat' ? 'Alat' : 'Ruangan'}</div>
+                  </td>
                   <td className="hidden max-w-xs truncate px-4 py-2.5 text-muted md:table-cell">{p.keperluan}</td>
                   <td className="hidden px-4 py-2.5 text-muted sm:table-cell">{p.peminjamNama}</td>
                   <td className="px-4 py-2.5"><LencanaStatus v={p.status} /></td>
@@ -160,9 +202,10 @@ export default function PeminjamanPage() {
       )}
 
       {baru && (
-        <Modal judul="Ajukan peminjaman ruangan" onTutup={() => setBaru(false)}>
+        <Modal judul="Ajukan peminjaman" onTutup={() => setBaru(false)}>
           <FormAjukan
             ruang={ruangUrut}
+            aset={asetUrut}
             semua={pinjam.data}
             onSelesai={() => setBaru(false)}
           />
@@ -173,7 +216,8 @@ export default function PeminjamanPage() {
         <Modal judul="Detail peminjaman" onTutup={() => setPilih(null)}>
           <DetailPinjam
             p={terpilih}
-            ruang={petaRuang.get(terpilih.ruangId)}
+            ruang={terpilih.ruangId ? petaRuang.get(terpilih.ruangId) : undefined}
+            aset={terpilih.asetId ? petaAset.get(terpilih.asetId) : undefined}
             semua={pinjam.data}
             admin={admin}
             uid={user?.uid}
@@ -187,58 +231,99 @@ export default function PeminjamanPage() {
 
 function FormAjukan({
   ruang,
+  aset,
   semua,
   onSelesai,
 }: {
   ruang: Ruang[]
+  aset: Aset[]
   semua: Peminjaman[]
   onSelesai: () => void
 }) {
   const { user, profil } = useAuth()
+  const [jenis, setJenis] = useState<JenisPeminjaman>('ruang')
   const [ruangId, setRuangId] = useState(ruang[0]?.id ?? '')
+  const [asetId, setAsetId] = useState(aset[0]?.id ?? '')
+  const [jumlahPinjam, setJumlahPinjam] = useState('1')
   const [mulai, setMulai] = useState(defaultMulai)
   const [selesai, setSelesai] = useState(() => defaultSelesai(defaultMulai()))
   const [keperluan, setKeperluan] = useState('')
   const [galat, setGalat] = useState('')
   const [proses, setProses] = useState(false)
 
-  const bentrok = useMemo(() => {
-    if (!ruangId || !mulai || !selesai) return [] as Peminjaman[]
+  const asetTerpilih = aset.find((a) => a.id === asetId)
+
+  const bentrokRuang = useMemo(() => {
+    if (jenis !== 'ruang' || !ruangId || !mulai || !selesai) return [] as Peminjaman[]
     return semua.filter(
       (p) =>
+        jenisPinjam(p) === 'ruang' &&
         p.ruangId === ruangId &&
         (p.status === 'diajukan' || p.status === 'disetujui') &&
         bentrokJadwal(mulai, selesai, p.mulai, p.selesai),
     )
-  }, [semua, ruangId, mulai, selesai])
+  }, [semua, jenis, ruangId, mulai, selesai])
+
+  const terpakaiAlat = useMemo(() => {
+    if (jenis !== 'alat' || !asetId || !mulai || !selesai) return 0
+    return stokTerpakai(semua, asetId, mulai, selesai)
+  }, [semua, jenis, asetId, mulai, selesai])
+
+  const stokTersedia = asetTerpilih ? Math.max(0, asetTerpilih.jumlah - terpakaiAlat) : 0
 
   async function kirim(e: FormEvent) {
     e.preventDefault()
     if (!user) return
-    if (!ruangId) return setGalat('Pilih ruang.')
+
     const t0 = new Date(mulai).getTime()
     const t1 = new Date(selesai).getTime()
     if (Number.isNaN(t0) || Number.isNaN(t1)) return setGalat('Waktu mulai dan selesai tidak valid.')
     if (t1 <= t0) return setGalat('Waktu selesai harus setelah waktu mulai.')
     if (t0 < Date.now() - 5 * 60 * 1000) return setGalat('Waktu mulai tidak boleh di masa lalu.')
     if (keperluan.trim().length < 5) return setGalat('Jelaskan keperluan (minimal 5 huruf).')
-    if (bentrok.some((p) => p.status === 'disetujui')) {
-      return setGalat('Ruang sudah dipesan pada waktu tersebut (ada peminjaman yang disetujui). Pilih waktu lain.')
+
+    if (jenis === 'ruang') {
+      if (!ruangId) return setGalat('Pilih ruang.')
+      if (bentrokRuang.some((p) => p.status === 'disetujui')) {
+        return setGalat('Ruang sudah dipesan pada waktu tersebut (ada peminjaman yang disetujui). Pilih waktu lain.')
+      }
+    } else {
+      if (!asetId || !asetTerpilih) return setGalat('Pilih alat.')
+      const jml = parseInt(jumlahPinjam, 10)
+      if (!Number.isFinite(jml) || jml < 1) return setGalat('Jumlah pinjam minimal 1.')
+      if (jml > asetTerpilih.jumlah) return setGalat(`Jumlah melebihi stok aset (${asetTerpilih.jumlah} unit).`)
+      if (jml > stokTersedia) {
+        return setGalat(
+          stokTersedia === 0
+            ? 'Alat sudah habis dipinjam pada waktu tersebut. Pilih waktu atau alat lain.'
+            : `Hanya tersisa ${stokTersedia} unit pada waktu tersebut.`,
+        )
+      }
     }
 
     setProses(true)
     setGalat('')
     try {
-      const id = await simpanDoc('sarpras_peminjaman', null, {
-        ruangId,
+      const data: Record<string, unknown> = {
+        jenis,
         keperluan: keperluan.trim(),
         mulai,
         selesai,
         status: 'diajukan',
         peminjamUid: user.uid,
         peminjamNama: profil?.nama ?? '',
-      })
-      await catat(profil, 'ajukan', 'sarpras_peminjaman', id)
+      }
+      if (jenis === 'ruang') {
+        data.ruangId = ruangId
+        data.asetId = null
+        data.jumlahPinjam = null
+      } else {
+        data.asetId = asetId
+        data.jumlahPinjam = parseInt(jumlahPinjam, 10)
+        data.ruangId = null
+      }
+      const id = await simpanDoc('sarpras_peminjaman', null, data)
+      await catat(profil, `ajukan:${jenis}`, 'sarpras_peminjaman', id)
       onSelesai()
     } catch {
       setGalat('Gagal mengajukan. Periksa koneksi atau hak akses Anda.')
@@ -250,16 +335,66 @@ function FormAjukan({
   return (
     <form onSubmit={kirim} className="space-y-3.5">
       {galat && <Notice tipe="error">{galat}</Notice>}
-      {ruang.length === 0 && (
-        <Notice tipe="warn">Belum ada ruang yang terdaftar. Hubungi admin sarpras.</Notice>
-      )}
-      <Field label="Ruang">
-        <select className={inputCls} value={ruangId} onChange={(e) => setRuangId(e.target.value)}>
-          {ruang.map((r) => (
-            <option key={r.id} value={r.id}>{r.kode} — {r.nama}</option>
-          ))}
-        </select>
+
+      <Field label="Jenis peminjaman">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={jenis === 'ruang' ? btnPrimary : btnGhost}
+            onClick={() => setJenis('ruang')}
+          >
+            Ruangan
+          </button>
+          <button
+            type="button"
+            className={jenis === 'alat' ? btnPrimary : btnGhost}
+            onClick={() => setJenis('alat')}
+          >
+            Alat
+          </button>
+        </div>
       </Field>
+
+      {jenis === 'ruang' ? (
+        <>
+          {ruang.length === 0 && (
+            <Notice tipe="warn">Belum ada ruang yang terdaftar. Hubungi admin sarpras.</Notice>
+          )}
+          <Field label="Ruang">
+            <select className={inputCls} value={ruangId} onChange={(e) => setRuangId(e.target.value)}>
+              {ruang.map((r) => (
+                <option key={r.id} value={r.id}>{r.kode} — {r.nama}</option>
+              ))}
+            </select>
+          </Field>
+        </>
+      ) : (
+        <>
+          {aset.length === 0 && (
+            <Notice tipe="warn">Belum ada alat yang bisa dipinjam. Pastikan aset sudah dicatat dan kondisinya tidak rusak berat.</Notice>
+          )}
+          <Field label="Alat" hint="Bangunan dan aset rusak berat tidak ditampilkan.">
+            <select className={inputCls} value={asetId} onChange={(e) => { setAsetId(e.target.value); setJumlahPinjam('1') }}>
+              {aset.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.nama} ({a.kode}) — stok {a.jumlah} · {namaKategori(a.kategori)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Jumlah unit" hint={asetTerpilih ? `Stok tercatat: ${asetTerpilih.jumlah}. Tersedia di waktu ini: ${stokTersedia}.` : undefined}>
+            <input
+              className={inputCls}
+              type="number"
+              min={1}
+              max={asetTerpilih?.jumlah ?? 1}
+              value={jumlahPinjam}
+              onChange={(e) => setJumlahPinjam(e.target.value)}
+            />
+          </Field>
+        </>
+      )}
+
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field label="Mulai">
           <input
@@ -281,25 +416,39 @@ function FormAjukan({
           />
         </Field>
       </div>
+
       <Field label="Keperluan">
         <textarea
           className={inputCls}
           rows={3}
           value={keperluan}
           onChange={(e) => setKeperluan(e.target.value)}
-          placeholder="Mis. Rapat wali kelas, latihan paduan suara…"
+          placeholder={jenis === 'ruang' ? 'Mis. Rapat wali kelas, latihan paduan suara…' : 'Mis. Proyektor untuk presentasi kelas 5…'}
         />
       </Field>
-      {bentrok.length > 0 && (
-        <Notice tipe={bentrok.some((p) => p.status === 'disetujui') ? 'error' : 'warn'}>
-          Ada {bentrok.length} pengajuan lain pada waktu yang sama untuk ruang ini
-          {bentrok.some((p) => p.status === 'disetujui')
+
+      {jenis === 'ruang' && bentrokRuang.length > 0 && (
+        <Notice tipe={bentrokRuang.some((p) => p.status === 'disetujui') ? 'error' : 'warn'}>
+          Ada {bentrokRuang.length} pengajuan lain pada waktu yang sama untuk ruang ini
+          {bentrokRuang.some((p) => p.status === 'disetujui')
             ? ' (termasuk yang sudah disetujui — tidak bisa diajukan).'
             : ' (masih diajukan — admin akan memutuskan).'}
         </Notice>
       )}
+
+      {jenis === 'alat' && asetTerpilih && terpakaiAlat > 0 && (
+        <Notice tipe={stokTersedia === 0 ? 'error' : 'warn'}>
+          {terpakaiAlat} unit sedang dipinjam/diajukan pada waktu ini.
+          {stokTersedia > 0 ? ` Tersisa ${stokTersedia} unit.` : ' Stok penuh — pilih waktu lain.'}
+        </Notice>
+      )}
+
       <div className="flex gap-2 pt-1">
-        <button type="submit" className={btnPrimary} disabled={proses || ruang.length === 0}>
+        <button
+          type="submit"
+          className={btnPrimary}
+          disabled={proses || (jenis === 'ruang' ? ruang.length === 0 : aset.length === 0)}
+        >
           {proses ? 'Mengirim…' : 'Ajukan'}
         </button>
         <button type="button" className={btnGhost} onClick={onSelesai}>Batal</button>
@@ -311,39 +460,49 @@ function FormAjukan({
 function DetailPinjam(props: {
   p: Peminjaman
   ruang?: Ruang
+  aset?: Aset
   semua: Peminjaman[]
   admin: boolean
   uid?: string
   onTutup: () => void
 }) {
-  const { p, ruang, semua, admin, uid, onTutup } = props
+  const { p, ruang, aset, semua, admin, uid, onTutup } = props
   const { profil } = useAuth()
   const [catatanAdmin, setCatatanAdmin] = useState(p.catatanAdmin ?? '')
   const [galat, setGalat] = useState('')
   const [proses, setProses] = useState(false)
   const [konfirmasiBatal, setKonfirmasiBatal] = useState(false)
 
+  const jenis = jenisPinjam(p)
   const milikSaya = p.peminjamUid === uid
   const bisaBatalkan = milikSaya && p.status === 'diajukan'
   const bisaKelola = admin && (p.status === 'diajukan' || p.status === 'disetujui')
 
-  const bentrokDisetujui = useMemo(() => {
-    if (p.status !== 'diajukan') return [] as Peminjaman[]
+  const bentrokDisetujuiRuang = useMemo(() => {
+    if (p.status !== 'diajukan' || jenis !== 'ruang' || !p.ruangId) return [] as Peminjaman[]
     return semua.filter(
       (x) =>
         x.id !== p.id &&
+        jenisPinjam(x) === 'ruang' &&
         x.ruangId === p.ruangId &&
         x.status === 'disetujui' &&
         bentrokJadwal(p.mulai, p.selesai, x.mulai, x.selesai),
     )
-  }, [semua, p])
+  }, [semua, p, jenis])
+
+  const stokSaatSetujui = useMemo(() => {
+    if (p.status !== 'diajukan' || jenis !== 'alat' || !p.asetId || !aset) return null
+    const terpakai = stokTerpakai(semua, p.asetId, p.mulai, p.selesai, p.id)
+    const sisa = aset.jumlah - terpakai
+    const minta = p.jumlahPinjam ?? 1
+    return { terpakai, sisa, minta, cukup: sisa >= minta }
+  }, [semua, p, jenis, aset])
 
   async function ubahStatus(status: StatusPeminjaman) {
     setGalat('')
     setProses(true)
     try {
       if (status === 'dibatalkan') {
-        // Aturan Firestore: peminjam hanya boleh mengubah status (+ updatedAt dari simpanDoc).
         await simpanDoc('sarpras_peminjaman', p.id, { status: 'dibatalkan' })
       } else {
         await simpanDoc('sarpras_peminjaman', p.id, {
@@ -361,11 +520,21 @@ function DetailPinjam(props: {
   }
 
   const baris: [string, string][] = [
+    ['Jenis', jenis === 'alat' ? 'Alat' : 'Ruangan'],
     ['Diajukan', formatTanggal(p.createdAt)],
     ['Peminjam', p.peminjamNama || '—'],
-    ['Ruang', ruang ? `${ruang.kode} — ${ruang.nama}` : '—'],
-    ['Waktu', formatRentang(p.mulai, p.selesai)],
   ]
+  if (jenis === 'ruang') {
+    baris.push(['Ruang', ruang ? `${ruang.kode} — ${ruang.nama}` : '—'])
+  } else {
+    baris.push([
+      'Alat',
+      aset ? `${aset.nama} (${aset.kode})` : 'Alat sudah dihapus',
+    ])
+    baris.push(['Jumlah', String(p.jumlahPinjam ?? 1)])
+    if (aset) baris.push(['Kategori', namaKategori(aset.kategori)])
+  }
+  baris.push(['Waktu', formatRentang(p.mulai, p.selesai)])
 
   return (
     <div className="space-y-3">
@@ -385,10 +554,23 @@ function DetailPinjam(props: {
 
       {galat && <Notice tipe="error">{galat}</Notice>}
 
-      {bisaKelola && p.status === 'diajukan' && bentrokDisetujui.length > 0 && (
+      {bisaKelola && p.status === 'diajukan' && jenis === 'ruang' && bentrokDisetujuiRuang.length > 0 && (
         <Notice tipe="warn">
-          Ada {bentrokDisetujui.length} peminjaman yang sudah disetujui pada waktu yang sama.
+          Ada {bentrokDisetujuiRuang.length} peminjaman ruang yang sudah disetujui pada waktu yang sama.
           Menyetujui ini akan membuat jadwal bentrok.
+        </Notice>
+      )}
+
+      {bisaKelola && p.status === 'diajukan' && stokSaatSetujui && !stokSaatSetujui.cukup && (
+        <Notice tipe="error">
+          Stok tidak cukup: diminta {stokSaatSetujui.minta}, tersisa {stokSaatSetujui.sisa}
+          (sudah terpakai {stokSaatSetujui.terpakai} unit pada waktu ini).
+        </Notice>
+      )}
+
+      {bisaKelola && p.status === 'diajukan' && stokSaatSetujui && stokSaatSetujui.cukup && stokSaatSetujui.terpakai > 0 && (
+        <Notice tipe="warn">
+          Setelah disetujui, sisa stok pada waktu ini: {stokSaatSetujui.sisa - stokSaatSetujui.minta} unit.
         </Notice>
       )}
 
@@ -409,7 +591,7 @@ function DetailPinjam(props: {
                 <button
                   type="button"
                   className={btnPrimary}
-                  disabled={proses}
+                  disabled={proses || (stokSaatSetujui !== null && !stokSaatSetujui.cukup)}
                   onClick={() => void ubahStatus('disetujui')}
                 >
                   {proses ? '…' : 'Setujui'}
@@ -431,7 +613,7 @@ function DetailPinjam(props: {
                 disabled={proses}
                 onClick={() => void ubahStatus('selesai')}
               >
-                {proses ? '…' : 'Tandai selesai'}
+                {proses ? '…' : 'Tandai selesai / dikembalikan'}
               </button>
             )}
             <button type="button" className={btnGhost} onClick={onTutup}>Tutup</button>
