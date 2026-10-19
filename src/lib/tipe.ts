@@ -49,3 +49,38 @@ export interface Aset {
 
 export const namaKondisi = (v: string) => KONDISI.find((k) => k.v === v)?.l ?? v
 export const namaKategori = (kode: string) => KATEGORI.find((k) => k.kode === kode)?.nama ?? kode
+
+export const STATUS_KERUSAKAN = [
+  { v: 'baru', l: 'Baru' },
+  { v: 'dicek', l: 'Dicek' },
+  { v: 'dalam_perbaikan', l: 'Dalam perbaikan' },
+  { v: 'selesai', l: 'Selesai' },
+] as const
+export type StatusKerusakan = (typeof STATUS_KERUSAKAN)[number]['v']
+export const namaStatus = (v: string) => STATUS_KERUSAKAN.find((s) => s.v === v)?.l ?? v
+
+/** Stempel waktu Firestore (null sementara sebelum server mengisinya). */
+export interface Waktu {
+  toDate(): Date
+}
+
+export interface Kerusakan {
+  id: string
+  ruangId: string
+  asetId?: string | null
+  deskripsi: string
+  fotoId?: string | null
+  status: StatusKerusakan
+  pelaporUid: string
+  pelaporNama: string
+  createdBy: string
+  penanganan?: string
+  biaya?: number | null
+  tanggalSelesai?: Waktu | null
+  createdAt?: Waktu | null
+}
+
+export function formatTanggal(w?: Waktu | null) {
+  if (!w) return 'baru saja'
+  return w.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}

@@ -2,6 +2,10 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.3.0 — Oktober 2026
+- Modul Kerusakan: semua staf melapor (ruang, barang opsional, keterangan, foto); admin dan petugas mengubah status (Baru, Dicek, Dalam perbaikan, Selesai), penanganan, dan biaya; admin dapat memperbarui kondisi barang di daftar aset.
+- Beranda menampilkan jumlah laporan yang belum selesai.
+
 ## 0.2.0 — Oktober 2026
 - Modul Ruang: daftar, tambah, ubah, hapus (admin); hapus ditolak bila ruang masih berisi aset.
 - Modul Aset: daftar, cari, filter ruang/kategori/kondisi, ringkasan, detail, tambah/ubah/hapus (admin), kode aset otomatis `SDM01-<KATEGORI>-<RUANG>-<NOMOR>`, foto dikecilkan di peramban, cetak daftar.

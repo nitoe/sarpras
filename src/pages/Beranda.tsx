@@ -2,12 +2,12 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useKoleksi } from '../lib/useKoleksi'
 import { NAMA_PERAN } from '../lib/peran'
-import type { Aset, Ruang } from '../lib/tipe'
+import type { Aset, Kerusakan } from '../lib/tipe'
 import { Badge, Notice, PageHeader, StatStrip } from '../components/ui'
 
 export default function Beranda() {
   const { profil, peran } = useAuth()
-  const ruang = useKoleksi<Ruang>('sarpras_ruang')
+  const laporan = useKoleksi<Kerusakan>('sarpras_kerusakan')
   const aset = useKoleksi<Aset>('sarpras_aset')
 
   const total = aset.data.reduce((n, a) => n + a.jumlah, 0)
@@ -20,10 +20,10 @@ export default function Beranda() {
         <>
           <StatStrip
             items={[
-              { label: 'Ruang', nilai: ruang.data.length },
               { label: 'Jenis barang', nilai: aset.data.length },
               { label: 'Total unit', nilai: total },
-              { label: 'Perlu perbaikan', nilai: rusak },
+              { label: 'Kondisi perlu perbaikan', nilai: rusak },
+              { label: 'Laporan belum selesai', nilai: laporan.data.filter((k) => k.status !== 'selesai').length },
             ]}
           />
           <div className="card-soft flex flex-wrap items-center justify-between gap-3 p-4">
@@ -33,6 +33,7 @@ export default function Beranda() {
             </div>
             <div className="flex gap-4 text-sm font-medium text-muh-700">
               <Link to="/aset" className="hover:underline">Lihat aset</Link>
+              <Link to="/kerusakan" className="hover:underline">Laporan kerusakan</Link>
               <Link to="/ruang" className="hover:underline">Lihat ruang</Link>
             </div>
           </div>
