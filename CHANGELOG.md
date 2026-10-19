@@ -1,39 +1,23 @@
 # Changelog
 
+## 0.5.4 — Oktober 2026
+- **Unduh Excel (Sesi 5):** tombol di Aset dan Peminjaman mengunduh CSV (UTF-8) yang terbuka di Excel/LibreOffice.
+- Isi mengikuti filter yang aktif di layar; kolom nilai aset hanya untuk admin/pimpinan.
+
 ## 0.5.3 — Oktober 2026
-- **Beranda (Sesi 4):** ringkasan Fase 2 — pemeliharaan terlambat, jatuh tempo 7 hari, usulan menunggu/disetujui.
-- Kartu perhatian (klik langsung ke halaman terkait) untuk terlambat, usulan menunggu (pimpinan/admin), pengembalian, kerusakan aktif.
-- Menu cepat menambahkan Pemeliharaan & Usulan.
+- Beranda: ringkasan pemeliharaan & usulan + kartu perhatian.
 
 ## 0.5.2 — Oktober 2026
-- **Halaman Usulan (Sesi 3):** ajukan pengadaan/perbaikan; alur setujui/tolak/selesai/batalkan.
+- Halaman Usulan lengkap.
 
 ## 0.5.1 — Oktober 2026
-- **Halaman Pemeliharaan (Sesi 2):** jadwal, filter, tandai selesai, majukan tempo.
+- Halaman Pemeliharaan lengkap.
 
 ## 0.5.0 — Oktober 2026
-- Fondasi Fase 2: tipe, menu, route, rules `sarpras_pemeliharaan` & `sarpras_usulan`.
+- Fondasi Fase 2 (tipe, menu, rules).
 
-## 0.4.6 — Oktober 2026
-- Layout full-width.
-
-## 0.4.5 — Oktober 2026
-- StatStrip; Beranda pintasan.
-
-## 0.4.4 — Oktober 2026
-- Sidebar sticky; nav bawah `labelPendek`.
-
-## 0.4.3 — Oktober 2026
-- Pengaturan peran; petugas non-guru.
-
-## 0.4.2 — Oktober 2026
-- Pengembalian alat.
-
-## 0.4.1 — Oktober 2026
-- Peminjaman alat + stok.
-
-## 0.4.0 — Oktober 2026
-- Peminjaman ruangan.
+## 0.4.x — Oktober 2026
+- Peminjaman, pengembalian, pengaturan, layout full-width.
 
 ## 0.3.0 — Oktober 2026
 - Kerusakan.
