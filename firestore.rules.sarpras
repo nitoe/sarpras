@@ -102,6 +102,41 @@
       allow delete: if false;
     }
 
+    // Jadwal pemeliharaan rutin (fase 2): admin kelola penuh;
+    // petugas boleh menandai sudah dikerjakan (terakhirDilakukan, catatan, jatuhTempo, petugas*).
+    match /sarpras_pemeliharaan/{id} {
+      allow read: if sarprasStaf();
+      allow create: if sarprasAdmin()
+                    && request.resource.data.keys().hasAll(['jenis', 'kegiatan', 'periode', 'jatuhTempo']);
+      allow update: if sarprasAdmin()
+                    || (akunAktif() && peranSarpras() == 'petugas'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['terakhirDilakukan', 'catatan', 'jatuhTempo',
+                                       'petugasUid', 'petugasNama', 'updatedAt']));
+      allow delete: if sarprasAdmin();
+    }
+
+    // Usulan pengadaan/perbaikan (fase 2): staf mengajukan atas namanya;
+    // admin mengelola; pimpinan boleh setujui/tolak; pengusul boleh batalkan saat diajukan.
+    match /sarpras_usulan/{id} {
+      allow read: if sarprasStaf();
+      allow create: if sarprasStaf()
+                    && request.resource.data.pengusulUid == request.auth.uid
+                    && request.resource.data.status == 'diajukan';
+      allow update: if sarprasAdmin()
+                    || (akunAktif() && peranSarpras() == 'pimpinan'
+                        && resource.data.status == 'diajukan'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'catatanAdmin', 'updatedAt'])
+                        && request.resource.data.status in ['disetujui', 'ditolak'])
+                    || (akunAktif() && resource.data.pengusulUid == request.auth.uid
+                        && resource.data.status == 'diajukan'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'updatedAt'])
+                        && request.resource.data.status == 'dibatalkan');
+      allow delete: if false;
+    }
+
     // Log perubahan: staf menulis atas namanya, hanya admin membaca, tidak bisa diubah.
     match /sarpras_log/{id} {
       allow read: if sarprasAdmin();
