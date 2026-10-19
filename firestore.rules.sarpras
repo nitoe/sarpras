@@ -1,4 +1,4 @@
-// ==============================================================================
+// ============================================================================
 // ATURAN SARPRAS — untuk DITEMPEL ke firestore.rules di repo SDM01Penilaian
 // (satu project Firebase hanya punya satu berkas rules; repo sarpras TIDAK
 // men-deploy rules supaya aturan Penilaian tidak tertimpa).
@@ -7,7 +7,7 @@
 //           tepat setelah fungsi `isGuruAkademik()`.
 // Bagian B: tempel blok `match` ini tepat SEBELUM blok "Default: tolak semuanya".
 // Sesudah itu: uji, lalu `npm run deploy:rules` di repo SDM01Penilaian.
-// ==============================================================================
+// ============================================================================
 
 
 // ───────────────────────── BAGIAN A: fungsi ─────────────────────────
@@ -43,6 +43,11 @@
     }
 
     match /sarpras_kategori/{id} {
+      allow read: if sarprasStaf();
+      allow write: if sarprasAdmin();
+    }
+
+    match /sarpras_sumber/{id} {
       allow read: if sarprasStaf();
       allow write: if sarprasAdmin();
     }
