@@ -10,6 +10,7 @@ import KerusakanPage from './pages/Kerusakan'
 import PeminjamanPage from './pages/Peminjaman'
 import PengembalianPage from './pages/Pengembalian'
 import PengaturanPage from './pages/Pengaturan'
+import MasterDataPage from './pages/MasterData'
 import PemeliharaanPage from './pages/Pemeliharaan'
 import UsulanPage from './pages/Usulan'
 
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="pengembalian" element={<PengembalianPage />} />
         <Route path="pemeliharaan" element={<PemeliharaanPage />} />
         <Route path="usulan" element={<UsulanPage />} />
+        <Route path="master" element={<MasterDataPage />} />
         <Route path="pengaturan" element={<PengaturanPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

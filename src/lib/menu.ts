@@ -22,6 +22,7 @@ export const MENU: MenuItem[] = [
   { path: '/pengembalian', label: 'Pengembalian', labelPendek: 'Kembali', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
   { path: '/pemeliharaan', label: 'Pemeliharaan', labelPendek: 'Rawat', untuk: SEMUA, aktif: true },
   { path: '/usulan', label: 'Usulan', labelPendek: 'Usulan', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
+  { path: '/master', label: 'Data master', labelPendek: 'Master', untuk: ['admin'], aktif: true },
   { path: '/pengaturan', label: 'Pengaturan', labelPendek: 'Atur', untuk: ['admin'], aktif: true },
 ]
 
