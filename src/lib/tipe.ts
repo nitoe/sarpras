@@ -5,7 +5,8 @@ export const KONDISI = [
 ] as const
 export type Kondisi = (typeof KONDISI)[number]['v']
 
-export const KATEGORI = [
+/** Cadangan bila koleksi sarpras_kategori masih kosong. */
+export const KATEGORI_BAWAAN = [
   { kode: 'MBL', nama: 'Mebel' },
   { kode: 'ELK', nama: 'Elektronik' },
   { kode: 'OLR', nama: 'Alat olahraga' },
@@ -15,6 +16,15 @@ export const KATEGORI = [
   { kode: 'BGN', nama: 'Bangunan' },
   { kode: 'LNY', nama: 'Lainnya' },
 ] as const
+
+/** Alias kompatibilitas — prefer daftar dari Firestore. */
+export const KATEGORI = KATEGORI_BAWAAN
+
+export interface Kategori {
+  id: string
+  kode: string
+  nama: string
+}
 
 export const SUMBER = ['BOS', 'Yayasan', 'Hibah', 'Wakaf', 'Lainnya'] as const
 
@@ -48,7 +58,13 @@ export interface Aset {
 }
 
 export const namaKondisi = (v: string) => KONDISI.find((k) => k.v === v)?.l ?? v
-export const namaKategori = (kode: string) => KATEGORI.find((k) => k.kode === kode)?.nama ?? kode
+export const namaKategori = (
+  kode: string,
+  daftar?: { kode: string; nama: string }[],
+) => {
+  const list = daftar && daftar.length > 0 ? daftar : KATEGORI_BAWAAN
+  return list.find((k) => k.kode === kode)?.nama ?? kode
+}
 
 export const STATUS_KERUSAKAN = [
   { v: 'baru', l: 'Baru' },
