@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { useAuth } from '../context/AuthContext'
 import { useKoleksi } from '../lib/useKoleksi'
 import { db } from '../lib/firebase'
-import { catat } from '../lib/data'
+import { catat, hapusDoc, simpanDoc } from '../lib/data'
 import { NAMA_PERAN } from '../lib/peran'
 import type { PeranSarpras } from '../types/user'
+import { KATEGORI_BAWAAN, type Kategori } from '../lib/tipe'
+import { useDaftarKategori } from '../lib/kategori'
 import { Badge, Field, Modal, Notice, PageHeader, btnGhost, btnPrimary, inputCls } from '../components/ui'
 
 /** Profil ringkas dari koleksi users (field yang dipakai halaman ini). */
@@ -50,6 +52,13 @@ export default function PengaturanPage() {
   const { profil, peran } = useAuth()
   const admin = peran === 'admin'
   const users = useKoleksi<UserRow>('users')
+  const kategori = useDaftarKategori()
+
+  const [kodeBaru, setKodeBaru] = useState('')
+  const [namaKat, setNamaKat] = useState('')
+  const [galatKat, setGalatKat] = useState('')
+  const [okKat, setOkKat] = useState('')
+  const [prosesKat, setProsesKat] = useState(false)
 
   const [cari, setCari] = useState('')
   const [edit, setEdit] = useState<UserRow | null>(null)
@@ -103,6 +112,70 @@ export default function PengaturanPage() {
       setGalat('Gagal menyimpan. Pastikan Anda admin dan koneksi stabil.')
     } finally {
       setProses(false)
+    }
+  }
+
+  async function simpanKategori(e: FormEvent) {
+    e.preventDefault()
+    const kode = kodeBaru.trim().toUpperCase()
+    const nama = namaKat.trim()
+    if (!/^[A-Z0-9]{2,8}$/.test(kode)) {
+      return setGalatKat('Kode 2–8 huruf/angka (contoh: MBL, ELK).')
+    }
+    if (nama.length < 2) return setGalatKat('Nama kategori minimal 2 huruf.')
+    if (kategori.daftar.some((k) => k.kode === kode && kategori.dariFirestore)) {
+      return setGalatKat('Kode sudah dipakai.')
+    }
+    setProsesKat(true)
+    setGalatKat('')
+    setOkKat('')
+    try {
+      if (!kategori.dariFirestore) {
+        for (const k of KATEGORI_BAWAAN) {
+          await simpanDoc('sarpras_kategori', null, { kode: k.kode, nama: k.nama })
+        }
+      }
+      const id = await simpanDoc('sarpras_kategori', null, { kode, nama })
+      await catat(profil, 'tambah', 'sarpras_kategori', id)
+      setKodeBaru('')
+      setNamaKat('')
+      setOkKat('Kategori disimpan.')
+    } catch {
+      setGalatKat('Gagal menyimpan kategori.')
+    } finally {
+      setProsesKat(false)
+    }
+  }
+
+  async function seedBawaan() {
+    setProsesKat(true)
+    setGalatKat('')
+    setOkKat('')
+    try {
+      for (const k of KATEGORI_BAWAAN) {
+        await simpanDoc('sarpras_kategori', null, { kode: k.kode, nama: k.nama })
+      }
+      await catat(profil, 'seed', 'sarpras_kategori', 'bawaan')
+      setOkKat('8 kategori bawaan disalin ke database.')
+    } catch {
+      setGalatKat('Gagal menyalin kategori bawaan.')
+    } finally {
+      setProsesKat(false)
+    }
+  }
+
+  async function hapusKategori(k: Kategori) {
+    if (!kategori.dariFirestore) return
+    setProsesKat(true)
+    setGalatKat('')
+    try {
+      await hapusDoc('sarpras_kategori', k.id)
+      await catat(profil, 'hapus', 'sarpras_kategori', k.id)
+      setOkKat(`Kategori ${k.kode} dihapus.`)
+    } catch {
+      setGalatKat('Gagal menghapus.')
+    } finally {
+      setProsesKat(false)
     }
   }
 
@@ -232,6 +305,89 @@ export default function PengaturanPage() {
           </table>
         </div>
       )}
+
+      <div className="mt-8 mb-2 text-sm font-medium text-[#1a1d33]">Kategori aset</div>
+      <p className="mb-3 text-sm text-muted">
+        Dipakai di form aset. Jika belum ada data di database, aplikasi memakai daftar bawaan
+        (Mebel, Elektronik, …).
+      </p>
+      {okKat && (
+        <div className="mb-3">
+          <Notice tipe="info">{okKat}</Notice>
+        </div>
+      )}
+      {galatKat && (
+        <div className="mb-3">
+          <Notice tipe="error">{galatKat}</Notice>
+        </div>
+      )}
+
+      <div className="card-soft mb-4 overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-border bg-surface-2 text-xs text-muted">
+            <tr>
+              <th className="px-4 py-2.5 font-medium">Kode</th>
+              <th className="px-4 py-2.5 font-medium">Nama</th>
+              <th className="w-px px-4 py-2.5" />
+            </tr>
+          </thead>
+          <tbody>
+            {kategori.daftar.map((k) => (
+              <tr key={k.id} className="border-b border-border last:border-0">
+                <td className="px-4 py-2.5 font-medium">{k.kode}</td>
+                <td className="px-4 py-2.5">{k.nama}</td>
+                <td className="px-4 py-2.5 text-right">
+                  {kategori.dariFirestore ? (
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-red-600 hover:underline"
+                      disabled={prosesKat}
+                      onClick={() => void hapusKategori(k)}
+                    >
+                      Hapus
+                    </button>
+                  ) : (
+                    <span className="text-xs text-muted">bawaan</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {!kategori.dariFirestore && (
+        <div className="mb-4">
+          <button type="button" className={btnGhost} disabled={prosesKat} onClick={() => void seedBawaan()}>
+            {prosesKat ? 'Menyalin…' : 'Salin kategori bawaan ke database'}
+          </button>
+        </div>
+      )}
+
+      <form onSubmit={(e) => void simpanKategori(e)} className="card-soft mb-6 grid gap-3 p-4 sm:grid-cols-[8rem_1fr_auto]">
+        <Field label="Kode">
+          <input
+            className={inputCls}
+            value={kodeBaru}
+            onChange={(e) => setKodeBaru(e.target.value.toUpperCase())}
+            placeholder="MBL"
+            maxLength={8}
+          />
+        </Field>
+        <Field label="Nama">
+          <input
+            className={inputCls}
+            value={namaKat}
+            onChange={(e) => setNamaKat(e.target.value)}
+            placeholder="Mebel"
+          />
+        </Field>
+        <div className="flex items-end">
+          <button type="submit" className={btnPrimary} disabled={prosesKat}>
+            {prosesKat ? '…' : 'Tambah'}
+          </button>
+        </div>
+      </form>
 
       {edit && (
         <Modal judul={`Peran: ${edit.nama || edit.email}`} onTutup={() => setEdit(null)}>
