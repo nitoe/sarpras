@@ -112,7 +112,7 @@ export default function PeminjamanPage() {
   const terpilih = pilih ? (pinjam.data.find((p) => p.id === pilih.id) ?? pilih) : null
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <PageHeader
         judul="Peminjaman"
         keterangan="Ajukan dan kelola peminjaman ruangan atau alat"
@@ -431,15 +431,15 @@ function DetailPinjam(props: {
       {p.catatanPengembalian && (
         <p className="text-sm"><span className="text-muted">Catatan pengembalian: </span>{p.catatanPengembalian}</p>
       )}
-      {p.catatanAdmin && (
+      {p.catatanAdmin && p.status !== 'diajukan' && (
         <p className="text-sm"><span className="text-muted">Catatan admin: </span>{p.catatanAdmin}</p>
       )}
       {galat && <Notice tipe="error">{galat}</Notice>}
-      {bisaKelola && p.status === 'diajukan' && jenis === 'ruang' && bentrokDisetujuiRuang.length > 0 && (
-        <Notice tipe="warn">Ada {bentrokDisetujuiRuang.length} peminjaman ruang yang sudah disetujui pada waktu yang sama.</Notice>
+      {p.status === 'diajukan' && jenis === 'ruang' && bentrokDisetujuiRuang.length > 0 && (
+        <Notice tipe="error">Sudah ada peminjaman disetujui pada waktu yang sama. Pertimbangkan menolak.</Notice>
       )}
-      {bisaKelola && p.status === 'diajukan' && stokSaatSetujui && !stokSaatSetujui.cukup && (
-        <Notice tipe="error">Stok tidak cukup: diminta {stokSaatSetujui.minta}, tersisa {stokSaatSetujui.sisa}.</Notice>
+      {stokSaatSetujui && !stokSaatSetujui.cukup && (
+        <Notice tipe="error">Stok tidak cukup (minta {stokSaatSetujui.minta}, sisa {stokSaatSetujui.sisa}).</Notice>
       )}
       {bisaKelola && (
         <div className="space-y-3 border-t border-border pt-3">
@@ -449,47 +449,38 @@ function DetailPinjam(props: {
           <div className="flex flex-wrap gap-2">
             {p.status === 'diajukan' && (
               <>
-                <button type="button" className={btnPrimary} disabled={proses || (stokSaatSetujui !== null && !stokSaatSetujui.cukup)} onClick={() => void ubahStatus('disetujui')}>
+                <button type="button" className={btnPrimary} disabled={proses || Boolean(stokSaatSetujui && !stokSaatSetujui.cukup)} onClick={() => void ubahStatus('disetujui')}>
                   {proses ? '…' : 'Setujui'}
                 </button>
                 <button type="button" className={btnDanger} disabled={proses} onClick={() => void ubahStatus('ditolak')}>Tolak</button>
               </>
             )}
-            {p.status === 'disetujui' && (
+            {(p.status === 'disetujui' || p.status === 'pengembalian') && (
               <button type="button" className={btnPrimary} disabled={proses} onClick={() => void ubahStatus('selesai')}>
-                {proses ? '…' : 'Tandai selesai / dikembalikan'}
+                {proses ? '…' : 'Tandai selesai'}
               </button>
-            )}
-            {p.status === 'pengembalian' && (
-              <>
-                <button type="button" className={btnPrimary} disabled={proses} onClick={() => void ubahStatus('selesai')}>
-                  {proses ? '…' : 'Konfirmasi diterima'}
-                </button>
-                <button type="button" className={btnGhost} disabled={proses} onClick={() => void ubahStatus('disetujui')}>Tolak pengembalian</button>
-              </>
             )}
             <button type="button" className={btnGhost} onClick={onTutup}>Tutup</button>
           </div>
         </div>
       )}
-      {bisaBatalkan && !bisaKelola && (
+      {bisaBatalkan && (
         <div className="border-t border-border pt-3">
           {konfirmasiBatal ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm">Batalkan pengajuan ini?</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Batalkan pengajuan?</span>
               <button type="button" className={btnDanger} disabled={proses} onClick={() => void ubahStatus('dibatalkan')}>Ya, batalkan</button>
               <button type="button" className={btnGhost} onClick={() => setKonfirmasiBatal(false)}>Tidak</button>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              <button type="button" className={btnDanger} onClick={() => setKonfirmasiBatal(true)}>Batalkan pengajuan</button>
-              <button type="button" className={btnGhost} onClick={onTutup}>Tutup</button>
-            </div>
+            <button type="button" className={btnDanger} onClick={() => setKonfirmasiBatal(true)}>Batalkan pengajuan</button>
           )}
         </div>
       )}
       {!bisaKelola && !bisaBatalkan && (
-        <div className="pt-1"><button type="button" className={btnGhost} onClick={onTutup}>Tutup</button></div>
+        <div className="pt-1">
+          <button type="button" className={btnGhost} onClick={onTutup}>Tutup</button>
+        </div>
       )}
     </div>
   )
