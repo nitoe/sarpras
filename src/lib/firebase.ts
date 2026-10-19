@@ -14,7 +14,7 @@ const firebaseConfig = {
 }
 
 const isNewApp = getApps().length === 0
-const app = isNewApp ? initializeApp(firebaseConfig) : getApps()[0]!
+export const app = isNewApp ? initializeApp(firebaseConfig) : getApps()[0]!
 
 export const auth = getAuth(app)
 // ignoreUndefinedProperties: field kosong tidak membuat setDoc gagal. Hanya boleh dipanggil sekali.
