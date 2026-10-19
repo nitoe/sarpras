@@ -1,24 +1,23 @@
-# CHANGELOG
+# Changelog
 
-Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
+## 0.5.0 — Oktober 2026
+- **Fase 2 fondasi (Sesi 1):** tipe `Pemeliharaan` & `Usulan`, menu + route, halaman placeholder.
+- Aturan Firestore `sarpras_pemeliharaan` (admin kelola; petugas tandai selesai) dan `sarpras_usulan` (staf ajukan; pimpinan setujui/tolak; pengusul batalkan).
+- Menu **Pemeliharaan** (semua peran) dan **Usulan** (admin, pimpinan, guru). UI lengkap menyusul Sesi 2–3.
 
 ## 0.4.6 — Oktober 2026
-- Layout: konten **full-width** (tanpa max-w) agar zoom-out tidak menyisakan ruang kosong di sisi.
-- Beranda: ringkasan 6 angka + kartu menu cepat (grid).
-- StatStrip lebih rapat; angka lebih tegas.
+- Layout full-width: wrapper halaman memakai `w-full` (tanpa `max-w-7xl` / `max-w-5xl`) agar konten mengisi area utama saat zoom-out atau layar lebar.
+- Beranda, Ruang, Aset, Kerusakan, Peminjaman, Pengembalian, Pengaturan diseragamkan.
 
 ## 0.4.5 — Oktober 2026
-- Layout: Aset memakai `max-w-7xl`; nav bawah highlight aktif + aman untuk notch (safe-area).
-- StatStrip: abaikan item kosong; pembatas vertikal di mobile lebih rapi.
+- StatStrip lebih rapat; filter label kosong; Beranda menampilkan ringkasan + pintasan menu.
 
 ## 0.4.4 — Oktober 2026
-- Layout: konten lebih lebar di desktop/zoom-out (`max-w-7xl` di Beranda & Ruang), sidebar sticky, header mobile sticky.
-- Navigasi bawah: label pendek (Pinjam, Kembali, Atur, Rusak) + scroll horizontal bila banyak item.
-- Komponen `PageShell` dan `StatStrip` responsif di layar lebar; judul halaman sedikit lebih besar di desktop.
+- Layout: sidebar sticky, navigasi bawah dengan `labelPendek` dan safe-area.
 
 ## 0.4.3 — Oktober 2026
-- Halaman **Pengaturan** (hanya Admin Sarpras): daftar staf, ubah field `peranSarpras` (pimpinan / guru / petugas / otomatis).
-- Panduan di halaman untuk menambah petugas kebersihan (bukan guru) lewat Firebase Console Authentication + dokumen `users`.
+- Halaman **Pengaturan**: admin mengelola field `peranSarpras` pada pengguna (pimpinan / guru / petugas).
+- Panduan menambah petugas kebersihan (bukan guru) lewat Firebase Console Authentication + dokumen `users`.
 - Admin Penilaian tetap otomatis Admin Sarpras (tidak diubah lewat form).
 
 ## 0.4.2 — Oktober 2026
