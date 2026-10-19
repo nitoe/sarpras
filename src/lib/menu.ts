@@ -13,8 +13,8 @@ const SEMUA: PeranSarpras[] = ['admin', 'pimpinan', 'guru', 'petugas']
 
 export const MENU: MenuItem[] = [
   { path: '/', label: 'Beranda', untuk: SEMUA, aktif: true },
-  { path: '/aset', label: 'Aset', untuk: SEMUA, aktif: false },
-  { path: '/ruang', label: 'Ruang', untuk: SEMUA, aktif: false },
+  { path: '/aset', label: 'Aset', untuk: SEMUA, aktif: true },
+  { path: '/ruang', label: 'Ruang', untuk: SEMUA, aktif: true },
   { path: '/kerusakan', label: 'Kerusakan', untuk: SEMUA, aktif: false },
   { path: '/peminjaman', label: 'Peminjaman', untuk: ['admin', 'pimpinan', 'guru'], aktif: false },
 ]

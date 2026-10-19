@@ -2,6 +2,12 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.2.0 — Oktober 2026
+- Modul Ruang: daftar, tambah, ubah, hapus (admin); hapus ditolak bila ruang masih berisi aset.
+- Modul Aset: daftar, cari, filter ruang/kategori/kondisi, ringkasan, detail, tambah/ubah/hapus (admin), kode aset otomatis `SDM01-<KATEGORI>-<RUANG>-<NOMOR>`, foto dikecilkan di peramban, cetak daftar.
+- Beranda menampilkan ringkasan jumlah. Setiap perubahan dicatat ke `sarpras_log`.
+- Kategori sementara berupa daftar tetap di kode (`src/lib/tipe.ts`), belum koleksi `sarpras_kategori`.
+
 ## 0.1.0 — Oktober 2026
 - Kerangka aplikasi: Vite + React 19 + TypeScript + Tailwind v4, tampilan seragam dengan Penilaian.
 - Login Firebase (project sama dengan Penilaian), peran sarpras, tata letak (sidebar dan navigasi bawah).

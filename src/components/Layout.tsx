@@ -15,7 +15,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-full flex-col lg:flex-row">
-      <aside className="hidden w-60 shrink-0 flex-col bg-muh-800 p-4 lg:flex">
+      <aside className="hidden w-60 shrink-0 flex-col bg-muh-800 p-4 lg:flex print:hidden">
         <div className="mb-6 flex items-center gap-3">
           <div className="auth-logo-tile">
             <img src="/logo-sdm.png" alt="" className="h-8 w-8 object-contain" />
@@ -41,7 +41,7 @@ export default function Layout() {
         </div>
       </aside>
 
-      <header className="flex items-center justify-between bg-muh-800 px-4 py-3 lg:hidden">
+      <header className="flex items-center justify-between bg-muh-800 px-4 py-3 lg:hidden print:hidden">
         <div className="flex items-center gap-2.5 text-white">
           <div className="auth-logo-tile auth-logo-tile--light" style={{ height: '2rem', width: '2rem' }}>
             <img src="/logo-sdm.png" alt="" className="h-6 w-6 object-contain" />
@@ -53,12 +53,12 @@ export default function Layout() {
         </button>
       </header>
 
-      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8">
+      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8 print:p-0">
         <Outlet />
       </main>
 
       {menu.length > 1 && (
-        <nav className="fixed inset-x-0 bottom-0 flex border-t border-border bg-white lg:hidden">
+        <nav className="fixed inset-x-0 bottom-0 flex border-t border-border bg-white lg:hidden print:hidden">
           {menu.map((m) => (
             <NavLink
               key={m.path}
