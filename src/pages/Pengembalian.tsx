@@ -39,7 +39,6 @@ export default function PengembalianPage() {
 
   const petaAset = useMemo(() => new Map(aset.data.map((a) => [a.id, a])), [aset.data])
 
-  /** Alat yang sedang dipinjam (disetujui) — milik saya, atau semua bila admin. */
   const aktif = useMemo(
     () =>
       pinjam.data
@@ -49,7 +48,6 @@ export default function PengembalianPage() {
     [pinjam.data, admin, user?.uid],
   )
 
-  /** Pengajuan pengembalian yang menunggu konfirmasi admin. */
   const menunggu = useMemo(
     () =>
       pinjam.data
@@ -73,7 +71,7 @@ export default function PengembalianPage() {
   const terpilih = pilih ? (pinjam.data.find((p) => p.id === pilih.id) ?? pilih) : null
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <PageHeader
         judul="Pengembalian alat"
         keterangan={
@@ -89,7 +87,6 @@ export default function PengembalianPage() {
           { label: 'Sedang dipinjam', nilai: aktif.length },
           { label: 'Menunggu konfirmasi', nilai: menunggu.length },
           { label: 'Sudah dikembalikan', nilai: riwayat.length },
-          { label: '', nilai: '' },
         ]}
       />
 
@@ -225,7 +222,6 @@ function DetailPengembalian(props: {
     setGalat('')
     setProses(true)
     try {
-      // Hanya status + catatanPengembalian (+ updatedAt dari simpanDoc) — sesuai rules.
       await simpanDoc('sarpras_peminjaman', p.id, {
         status: 'pengembalian',
         catatanPengembalian: catatan.trim(),
