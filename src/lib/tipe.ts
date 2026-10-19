@@ -59,6 +59,16 @@ export const STATUS_KERUSAKAN = [
 export type StatusKerusakan = (typeof STATUS_KERUSAKAN)[number]['v']
 export const namaStatus = (v: string) => STATUS_KERUSAKAN.find((s) => s.v === v)?.l ?? v
 
+export const STATUS_PEMINJAMAN = [
+  { v: 'diajukan', l: 'Diajukan' },
+  { v: 'disetujui', l: 'Disetujui' },
+  { v: 'ditolak', l: 'Ditolak' },
+  { v: 'selesai', l: 'Selesai' },
+  { v: 'dibatalkan', l: 'Dibatalkan' },
+] as const
+export type StatusPeminjaman = (typeof STATUS_PEMINJAMAN)[number]['v']
+export const namaStatusPeminjaman = (v: string) => STATUS_PEMINJAMAN.find((s) => s.v === v)?.l ?? v
+
 /** Stempel waktu Firestore (null sementara sebelum server mengisinya). */
 export interface Waktu {
   toDate(): Date
@@ -80,7 +90,48 @@ export interface Kerusakan {
   createdAt?: Waktu | null
 }
 
+/** Peminjaman ruangan. mulai/selesai disimpan sebagai ISO string (YYYY-MM-DDTHH:mm). */
+export interface Peminjaman {
+  id: string
+  ruangId: string
+  keperluan: string
+  /** ISO lokal tanpa detik, mis. 2026-10-20T08:00 */
+  mulai: string
+  selesai: string
+  status: StatusPeminjaman
+  peminjamUid: string
+  peminjamNama: string
+  catatanAdmin?: string
+  createdAt?: Waktu | null
+  updatedAt?: Waktu | null
+}
+
 export function formatTanggal(w?: Waktu | null) {
   if (!w) return 'baru saja'
   return w.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+/** Tampilkan rentang waktu peminjaman dari string ISO lokal. */
+export function formatRentang(mulai: string, selesai: string) {
+  const a = new Date(mulai)
+  const b = new Date(selesai)
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return `${mulai} – ${selesai}`
+  const opsiTanggal: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }
+  const opsiJam: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' }
+  const tglA = a.toLocaleDateString('id-ID', opsiTanggal)
+  const tglB = b.toLocaleDateString('id-ID', opsiTanggal)
+  const jamA = a.toLocaleTimeString('id-ID', opsiJam)
+  const jamB = b.toLocaleTimeString('id-ID', opsiJam)
+  if (tglA === tglB) return `${tglA}, ${jamA} – ${jamB}`
+  return `${tglA} ${jamA} – ${tglB} ${jamB}`
+}
+
+/** Apakah dua rentang waktu saling tumpang tindih (ujung sama tidak dihitung bentrok). */
+export function bentrokJadwal(mulaiA: string, selesaiA: string, mulaiB: string, selesaiB: string) {
+  const a0 = new Date(mulaiA).getTime()
+  const a1 = new Date(selesaiA).getTime()
+  const b0 = new Date(mulaiB).getTime()
+  const b1 = new Date(selesaiB).getTime()
+  if ([a0, a1, b0, b1].some((n) => Number.isNaN(n))) return false
+  return a0 < b1 && b0 < a1
 }

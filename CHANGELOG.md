@@ -2,6 +2,11 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.4.0 — Oktober 2026
+- Modul Peminjaman ruangan: staf mengajukan (ruang, waktu mulai–selesai, keperluan); admin menyetujui/menolak/menandai selesai; peminjam dapat membatalkan pengajuan sendiri.
+- Pencegahan bentrok jadwal: peringatan saat mengajukan atau menyetujui jika ada peminjaman lain (diajukan/disetujui) pada ruang dan waktu yang sama; pengajuan ditolak otomatis bila sudah ada yang disetujui.
+- Filter status, ruang, dan “peminjaman saya saja”; ringkasan jumlah per status.
+
 ## 0.3.0 — Oktober 2026
 - Modul Kerusakan: semua staf melapor (ruang, barang opsional, keterangan, foto); admin dan petugas mengubah status (Baru, Dicek, Dalam perbaikan, Selesai), penanganan, dan biaya; admin dapat memperbarui kondisi barang di daftar aset.
 - Beranda menampilkan jumlah laporan yang belum selesai.
