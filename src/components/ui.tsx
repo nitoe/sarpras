@@ -76,18 +76,19 @@ export function Modal({ judul, onTutup, children }: { judul: string; onTutup: ()
 
 /** Kartu ringkasan angka. Di layar lebar mengikuti jumlah item (hingga 6 kolom). */
 export function StatStrip({ items }: { items: { label: string; nilai: string | number }[] }) {
-  const n = items.length
+  const data = items.filter((it) => it.label !== '')
+  const n = data.length
   const grid =
     n <= 2
-      ? 'grid-cols-2 sm:grid-cols-2'
+      ? 'grid-cols-2'
       : n === 3
         ? 'grid-cols-2 sm:grid-cols-3'
         : n === 4
           ? 'grid-cols-2 sm:grid-cols-4'
           : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
   return (
-    <div className={`card-soft mb-4 grid divide-border ${grid} sm:divide-x`}>
-      {items.map((it) => (
+    <div className={`card-soft mb-4 grid divide-y divide-border sm:divide-x sm:divide-y-0 ${grid}`}>
+      {data.map((it) => (
         <div key={it.label} className="min-w-0 p-4">
           <div className="text-xs text-muted">{it.label}</div>
           <div className="tabular mt-0.5 text-xl font-semibold tracking-tight sm:text-2xl">{it.nilai}</div>

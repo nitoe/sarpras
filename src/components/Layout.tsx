@@ -56,13 +56,13 @@ export default function Layout() {
       </header>
 
       {/* Area konten: mengisi sisa lebar, tanpa membatasi max-width di sini */}
-      <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8 print:p-0">
+      <main className="min-w-0 flex-1 p-4 pb-28 sm:p-6 lg:p-8 lg:pb-8 print:p-0">
         <Outlet />
       </main>
 
       {/* Nav bawah mobile: label pendek, scroll horizontal bila banyak item */}
       {menu.length > 1 && (
-        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white lg:hidden print:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
           <div className="flex overflow-x-auto">
             {menu.map((m) => (
               <NavLink
@@ -70,8 +70,8 @@ export default function Layout() {
                 to={m.path}
                 end={m.path === '/'}
                 className={({ isActive }) =>
-                  `flex min-w-[3.75rem] flex-1 flex-col items-center justify-center px-1 py-2.5 text-center text-[0.6875rem] font-medium leading-tight ${
-                    isActive ? 'text-muh-600' : 'text-muted'
+                  `flex min-w-[3.5rem] flex-1 flex-col items-center justify-center gap-0.5 px-1 py-2 text-center text-[0.6875rem] font-medium leading-tight ${
+                    isActive ? 'bg-muh-50 text-muh-600' : 'text-muted'
                   }`
                 }
               >
