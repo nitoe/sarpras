@@ -2,6 +2,11 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.4.6 — Oktober 2026
+- Layout: konten **full-width** (tanpa max-w) agar zoom-out tidak menyisakan ruang kosong di sisi.
+- Beranda: ringkasan 6 angka + kartu menu cepat (grid).
+- StatStrip lebih rapat; angka lebih tegas.
+
 ## 0.4.5 — Oktober 2026
 - Layout: Aset memakai `max-w-7xl`; nav bawah highlight aktif + aman untuk notch (safe-area).
 - StatStrip: abaikan item kosong; pembatas vertikal di mobile lebih rapi.
