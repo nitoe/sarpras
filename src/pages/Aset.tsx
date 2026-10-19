@@ -177,7 +177,7 @@ export default function AsetPage() {
   const judulRuang = fRuang ? petaRuang.get(fRuang)?.nama : undefined
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="w-full">
       <PageHeader
         judul={judulRuang ? `Aset — ${judulRuang}` : 'Aset'}
         keterangan="Daftar barang, jumlah, dan kondisinya"
