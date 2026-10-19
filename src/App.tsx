@@ -9,6 +9,7 @@ import AsetPage from './pages/Aset'
 import KerusakanPage from './pages/Kerusakan'
 import PeminjamanPage from './pages/Peminjaman'
 import PengembalianPage from './pages/Pengembalian'
+import PengaturanPage from './pages/Pengaturan'
 
 function Wajib({ children }: { children: ReactNode }) {
   const { user, profil, loading } = useAuth()
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="kerusakan" element={<KerusakanPage />} />
         <Route path="peminjaman" element={<PeminjamanPage />} />
         <Route path="pengembalian" element={<PengembalianPage />} />
+        <Route path="pengaturan" element={<PengaturanPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

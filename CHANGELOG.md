@@ -2,6 +2,11 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.4.3 — Oktober 2026
+- Halaman **Pengaturan** (hanya Admin Sarpras): daftar staf, ubah field `peranSarpras` (pimpinan / guru / petugas / otomatis).
+- Panduan di halaman untuk menambah petugas kebersihan (bukan guru) lewat Firebase Console Authentication + dokumen `users`.
+- Admin Penilaian tetap otomatis Admin Sarpras (tidak diubah lewat form).
+
 ## 0.4.2 — Oktober 2026
 - Halaman **Pengembalian** alat: peminjam mengajukan pengembalian untuk alat yang statusnya Disetujui; admin mengonfirmasi diterima atau menolak (status kembali Disetujui).
 - Status baru `pengembalian` (Menunggu pengembalian); field `catatanPengembalian`.

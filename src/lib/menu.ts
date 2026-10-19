@@ -18,6 +18,7 @@ export const MENU: MenuItem[] = [
   { path: '/kerusakan', label: 'Kerusakan', untuk: SEMUA, aktif: true },
   { path: '/peminjaman', label: 'Peminjaman', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
   { path: '/pengembalian', label: 'Pengembalian', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
+  { path: '/pengaturan', label: 'Pengaturan', untuk: ['admin'], aktif: true },
 ]
 
 export function menuUntuk(peran: PeranSarpras | null): MenuItem[] {
