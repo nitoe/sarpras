@@ -15,7 +15,8 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-full flex-col lg:flex-row">
-      <aside className="hidden w-60 shrink-0 flex-col bg-muh-800 p-4 lg:flex print:hidden">
+      {/* Sidebar desktop: tinggi penuh, sticky */}
+      <aside className="hidden w-60 shrink-0 flex-col bg-muh-800 p-4 lg:flex lg:sticky lg:top-0 lg:h-screen print:hidden">
         <div className="mb-6 flex items-center gap-3">
           <div className="auth-logo-tile">
             <img src="/logo-sdm.png" alt="" className="h-8 w-8 object-contain" />
@@ -25,7 +26,7 @@ export default function Layout() {
             <div className="text-xs text-muh-200">SDM 01 Kukusan</div>
           </div>
         </div>
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-1 overflow-y-auto">
           {menu.map((m) => (
             <NavLink key={m.path} to={m.path} end={m.path === '/'} className={kelasLink}>
               {m.label}
@@ -41,7 +42,8 @@ export default function Layout() {
         </div>
       </aside>
 
-      <header className="flex items-center justify-between bg-muh-800 px-4 py-3 lg:hidden print:hidden">
+      {/* Header mobile */}
+      <header className="sticky top-0 z-20 flex items-center justify-between bg-muh-800 px-4 py-3 lg:hidden print:hidden">
         <div className="flex items-center gap-2.5 text-white">
           <div className="auth-logo-tile auth-logo-tile--light" style={{ height: '2rem', width: '2rem' }}>
             <img src="/logo-sdm.png" alt="" className="h-6 w-6 object-contain" />
@@ -53,24 +55,30 @@ export default function Layout() {
         </button>
       </header>
 
+      {/* Area konten: mengisi sisa lebar, tanpa membatasi max-width di sini */}
       <main className="min-w-0 flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8 print:p-0">
         <Outlet />
       </main>
 
+      {/* Nav bawah mobile: label pendek, scroll horizontal bila banyak item */}
       {menu.length > 1 && (
-        <nav className="fixed inset-x-0 bottom-0 flex border-t border-border bg-white lg:hidden print:hidden">
-          {menu.map((m) => (
-            <NavLink
-              key={m.path}
-              to={m.path}
-              end={m.path === '/'}
-              className={({ isActive }) =>
-                `flex-1 py-3 text-center text-xs font-medium ${isActive ? 'text-muh-600' : 'text-muted'}`
-              }
-            >
-              {m.label}
-            </NavLink>
-          ))}
+        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white lg:hidden print:hidden">
+          <div className="flex overflow-x-auto">
+            {menu.map((m) => (
+              <NavLink
+                key={m.path}
+                to={m.path}
+                end={m.path === '/'}
+                className={({ isActive }) =>
+                  `flex min-w-[3.75rem] flex-1 flex-col items-center justify-center px-1 py-2.5 text-center text-[0.6875rem] font-medium leading-tight ${
+                    isActive ? 'text-muh-600' : 'text-muted'
+                  }`
+                }
+              >
+                {m.labelPendek ?? m.label}
+              </NavLink>
+            ))}
+          </div>
         </nav>
       )}
     </div>

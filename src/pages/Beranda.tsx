@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useKoleksi } from '../lib/useKoleksi'
 import { NAMA_PERAN } from '../lib/peran'
 import type { Aset, Kerusakan } from '../lib/tipe'
-import { Badge, Notice, PageHeader, StatStrip } from '../components/ui'
+import { Badge, Notice, PageHeader, PageShell, StatStrip } from '../components/ui'
 
 export default function Beranda() {
   const { profil, peran } = useAuth()
@@ -14,7 +14,7 @@ export default function Beranda() {
   const rusak = aset.data.filter((a) => a.kondisi !== 'baik').reduce((n, a) => n + a.jumlah, 0)
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <PageShell>
       <PageHeader judul={`Selamat datang, ${profil?.nama ?? ''}`} keterangan="Sarana dan prasarana SD Muhammadiyah 01 Kukusan" />
       {peran ? (
         <>
@@ -26,21 +26,24 @@ export default function Beranda() {
               { label: 'Laporan belum selesai', nilai: laporan.data.filter((k) => k.status !== 'selesai').length },
             ]}
           />
-          <div className="card-soft flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="card-soft flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
             <div>
               <div className="text-sm text-muted">Peran Anda</div>
               <div className="mt-1"><Badge>{NAMA_PERAN[peran]}</Badge></div>
             </div>
-            <div className="flex gap-4 text-sm font-medium text-muh-700">
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muh-700">
               <Link to="/aset" className="hover:underline">Lihat aset</Link>
               <Link to="/kerusakan" className="hover:underline">Laporan kerusakan</Link>
               <Link to="/ruang" className="hover:underline">Lihat ruang</Link>
+              {(peran === 'admin' || peran === 'pimpinan' || peran === 'guru') && (
+                <Link to="/peminjaman" className="hover:underline">Peminjaman</Link>
+              )}
             </div>
           </div>
         </>
       ) : (
         <Notice tipe="warn">Akun Anda belum memiliki akses ke aplikasi sarpras. Hubungi administrator.</Notice>
       )}
-    </div>
+    </PageShell>
   )
 }
