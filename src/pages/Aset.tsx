@@ -5,9 +5,10 @@ import { useKoleksi } from '../lib/useKoleksi'
 import { ambilFoto, catat, hapusDoc, simpanDoc, simpanFoto } from '../lib/data'
 import { kecilkanFoto } from '../lib/foto'
 import {
-  KATEGORI, KONDISI, SUMBER, namaKategori, namaKondisi,
+  KONDISI, SUMBER, namaKategori, namaKondisi,
   type Aset, type Kondisi, type Ruang,
 } from '../lib/tipe'
+import { useDaftarKategori } from '../lib/kategori'
 import { Field, Modal, Notice, PageHeader, StatStrip, btnDanger, btnGhost, btnPrimary, inputCls } from '../components/ui'
 import { stempelTanggal, unduhCsv } from '../lib/unduh'
 
@@ -53,6 +54,7 @@ export default function AsetPage() {
   const lihatNilai = peran === 'admin' || peran === 'pimpinan'
   const aset = useKoleksi<Aset>('sarpras_aset')
   const ruang = useKoleksi<Ruang>('sarpras_ruang')
+  const { daftar: daftarKategori } = useDaftarKategori()
   const [params, setParams] = useSearchParams()
 
   const [q, setQ] = useState('')
@@ -105,7 +107,7 @@ export default function AsetPage() {
         : {
             id: null,
             f: {
-              nama: '', kategori: 'MBL', ruangId: fRuang || ruangUrut[0]?.id || '', jumlah: '1', kondisi: 'baik',
+              nama: '', kategori: daftarKategori[0]?.kode || 'MBL', ruangId: fRuang || ruangUrut[0]?.id || '', jumlah: '1', kondisi: 'baik',
               tahun: '', sumber: '', nilai: '', catatan: '',
             },
           },
@@ -184,7 +186,7 @@ export default function AsetPage() {
       tampil.map((x) => [
         x.kode,
         x.nama,
-        namaKategori(x.kategori),
+        namaKategori(x.kategori, daftarKategori),
         petaRuang.get(x.ruangId)?.nama ?? '',
         x.jumlah,
         namaKondisi(x.kondisi),
@@ -239,7 +241,7 @@ export default function AsetPage() {
         </select>
         <select className={inputCls} value={fKategori} onChange={(e) => setFKategori(e.target.value)}>
           <option value="">Semua kategori</option>
-          {KATEGORI.map((k) => <option key={k.kode} value={k.kode}>{k.nama}</option>)}
+          {daftarKategori.map((k) => <option key={k.kode} value={k.kode}>{k.nama}</option>)}
         </select>
         <select className={inputCls} value={fKondisi} onChange={(e) => setFKondisi(e.target.value)}>
           <option value="">Semua kondisi</option>
@@ -274,7 +276,7 @@ export default function AsetPage() {
                   <td className="whitespace-nowrap px-4 py-2.5 text-xs font-medium text-muted">{a.kode}</td>
                   <td className="px-4 py-2.5">{a.nama}</td>
                   <td className="hidden px-4 py-2.5 text-muted md:table-cell">{petaRuang.get(a.ruangId)?.nama ?? '—'}</td>
-                  <td className="hidden px-4 py-2.5 text-muted sm:table-cell">{namaKategori(a.kategori)}</td>
+                  <td className="hidden px-4 py-2.5 text-muted sm:table-cell">{namaKategori(a.kategori, daftarKategori)}</td>
                   <td className="px-4 py-2.5 text-right">{a.jumlah}</td>
                   <td className="px-4 py-2.5"><LencanaKondisi v={a.kondisi} /></td>
                 </tr>
@@ -306,7 +308,7 @@ export default function AsetPage() {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Kategori">
                 <select className={inputCls} value={edit.f.kategori} onChange={(e) => setF({ kategori: e.target.value })}>
-                  {KATEGORI.map((k) => <option key={k.kode} value={k.kode}>{k.nama}</option>)}
+                  {daftarKategori.map((k) => <option key={k.kode} value={k.kode}>{k.nama}</option>)}
                 </select>
               </Field>
               <Field label="Ruang">
