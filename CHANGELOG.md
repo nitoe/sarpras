@@ -2,6 +2,11 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.4.4 — Oktober 2026
+- Layout: konten lebih lebar di desktop/zoom-out (`max-w-7xl` di Beranda & Ruang), sidebar sticky, header mobile sticky.
+- Navigasi bawah: label pendek (Pinjam, Kembali, Atur, Rusak) + scroll horizontal bila banyak item.
+- Komponen `PageShell` dan `StatStrip` responsif di layar lebar; judul halaman sedikit lebih besar di desktop.
+
 ## 0.4.3 — Oktober 2026
 - Halaman **Pengaturan** (hanya Admin Sarpras): daftar staf, ubah field `peranSarpras` (pimpinan / guru / petugas / otomatis).
 - Panduan di halaman untuk menambah petugas kebersihan (bukan guru) lewat Firebase Console Authentication + dokumen `users`.
