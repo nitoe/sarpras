@@ -26,7 +26,20 @@ export interface Kategori {
   nama: string
 }
 
-export const SUMBER = ['BOS', 'Yayasan', 'Hibah', 'Wakaf', 'Lainnya'] as const
+/** Cadangan bila koleksi sarpras_sumber masih kosong. */
+export const SUMBER_BAWAAN = ['BOS', 'Yayasan', 'Hibah', 'Wakaf', 'Lainnya'] as const
+
+/** Alias kompatibilitas. */
+export const SUMBER = SUMBER_BAWAAN
+
+export interface SumberDana {
+  id: string
+  /** Kode singkat, contoh: BOS */
+  kode: string
+  nama: string
+  /** Keterangan opsional */
+  keterangan?: string
+}
 
 export const JENIS_RUANG = [
   'Kelas', 'Perpustakaan', 'Laboratorium', 'Aula', 'Musala', 'Toilet',
