@@ -74,7 +74,7 @@ export function Modal({ judul, onTutup, children }: { judul: string; onTutup: ()
   )
 }
 
-/** Kartu ringkasan angka. Di layar lebar mengikuti jumlah item (hingga 6 kolom). */
+/** Kartu ringkasan angka — rapat agar tidak terlihat kosong saat zoom-out / layar lebar. */
 export function StatStrip({ items }: { items: { label: string; nilai: string | number }[] }) {
   const data = items.filter((it) => it.label !== '')
   const n = data.length
@@ -89,16 +89,20 @@ export function StatStrip({ items }: { items: { label: string; nilai: string | n
   return (
     <div className={`card-soft mb-4 grid divide-y divide-border sm:divide-x sm:divide-y-0 ${grid}`}>
       {data.map((it) => (
-        <div key={it.label} className="min-w-0 p-4">
-          <div className="text-xs text-muted">{it.label}</div>
-          <div className="tabular mt-0.5 text-xl font-semibold tracking-tight sm:text-2xl">{it.nilai}</div>
+        <div key={it.label} className="min-w-0 px-4 py-3 sm:px-5 sm:py-3.5">
+          <div className="text-xs leading-snug text-muted">{it.label}</div>
+          <div className="tabular mt-1 text-2xl font-semibold tracking-tight leading-none">{it.nilai}</div>
         </div>
       ))}
     </div>
   )
 }
 
-/** Pembungkus lebar konten halaman — seragam di desktop lebar / zoom-out. */
+/**
+ * Pembungkus konten halaman.
+ * - lebar (default): mengisi full area main — tidak dibatasi max-width agar zoom-out tidak menyisakan ruang kosong.
+ * - sempit: max-w-3xl (form / pesan singkat).
+ */
 export function PageShell({ children, lebar = 'lebar' }: { children: ReactNode; lebar?: 'sempit' | 'lebar' }) {
-  return <div className={lebar === 'sempit' ? 'mx-auto w-full max-w-3xl' : 'mx-auto w-full max-w-7xl'}>{children}</div>
+  return <div className={lebar === 'sempit' ? 'mx-auto w-full max-w-3xl' : 'w-full'}>{children}</div>
 }

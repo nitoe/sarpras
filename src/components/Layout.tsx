@@ -15,8 +15,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-full flex-col lg:flex-row">
-      {/* Sidebar desktop: tinggi penuh, sticky */}
-      <aside className="hidden w-60 shrink-0 flex-col bg-muh-800 p-4 lg:flex lg:sticky lg:top-0 lg:h-screen print:hidden">
+      <aside className="hidden w-56 shrink-0 flex-col bg-muh-800 p-4 lg:flex lg:sticky lg:top-0 lg:h-screen xl:w-60 print:hidden">
         <div className="mb-6 flex items-center gap-3">
           <div className="auth-logo-tile">
             <img src="/logo-sdm.png" alt="" className="h-8 w-8 object-contain" />
@@ -42,7 +41,6 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Header mobile */}
       <header className="sticky top-0 z-20 flex items-center justify-between bg-muh-800 px-4 py-3 lg:hidden print:hidden">
         <div className="flex items-center gap-2.5 text-white">
           <div className="auth-logo-tile auth-logo-tile--light" style={{ height: '2rem', width: '2rem' }}>
@@ -55,12 +53,11 @@ export default function Layout() {
         </button>
       </header>
 
-      {/* Area konten: mengisi sisa lebar, tanpa membatasi max-width di sini */}
-      <main className="min-w-0 flex-1 p-4 pb-28 sm:p-6 lg:p-8 lg:pb-8 print:p-0">
+      {/* Konten mengisi sisa lebar penuh (tidak ada max-width di sini) */}
+      <main className="min-w-0 flex-1 p-4 pb-28 sm:p-5 lg:p-6 lg:pb-6 print:p-0">
         <Outlet />
       </main>
 
-      {/* Nav bawah mobile: label pendek, scroll horizontal bila banyak item */}
       {menu.length > 1 && (
         <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white pb-[env(safe-area-inset-bottom)] lg:hidden print:hidden">
           <div className="flex overflow-x-auto">
