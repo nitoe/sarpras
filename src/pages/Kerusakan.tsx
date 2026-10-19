@@ -57,11 +57,10 @@ export default function KerusakanPage() {
     [laporan.data, fStatus, fRuang, saya, user?.uid],
   )
 
-  // Pilihan yang sedang dibuka ikut diperbarui bila datanya berubah.
   const terpilih = pilih ? (laporan.data.find((k) => k.id === pilih.id) ?? pilih) : null
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="w-full">
       <PageHeader
         judul="Kerusakan"
         keterangan="Laporan kerusakan sarana dan prasarana"
@@ -251,7 +250,6 @@ function DetailLapor(props: {
     }
   }, [k.fotoId])
 
-  // Petugas hanya boleh memakai status selain "baru" (sesuai aturan Firestore).
   const pilihanStatus = admin ? STATUS_KERUSAKAN : STATUS_KERUSAKAN.filter((s) => s.v !== 'baru')
 
   async function simpan(e: FormEvent) {
