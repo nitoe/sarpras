@@ -20,6 +20,8 @@ export const MENU: MenuItem[] = [
   { path: '/kerusakan', label: 'Kerusakan', labelPendek: 'Rusak', untuk: SEMUA, aktif: true },
   { path: '/peminjaman', label: 'Peminjaman', labelPendek: 'Pinjam', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
   { path: '/pengembalian', label: 'Pengembalian', labelPendek: 'Kembali', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
+  { path: '/pemeliharaan', label: 'Pemeliharaan', labelPendek: 'Rawat', untuk: SEMUA, aktif: true },
+  { path: '/usulan', label: 'Usulan', labelPendek: 'Usulan', untuk: ['admin', 'pimpinan', 'guru'], aktif: true },
   { path: '/pengaturan', label: 'Pengaturan', labelPendek: 'Atur', untuk: ['admin'], aktif: true },
 ]
 
