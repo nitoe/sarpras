@@ -3,8 +3,7 @@
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
 ## 0.4.5 — Oktober 2026
-- Layout lanjutan: semua halaman list memakai `max-w-7xl` (Aset, Kerusakan, Peminjaman, Pengembalian, Pengaturan).
-- Nav bawah: highlight item aktif, aman untuk notch (safe-area).
+- Layout: Aset memakai `max-w-7xl`; nav bawah highlight aktif + aman untuk notch (safe-area).
 - StatStrip: abaikan item kosong; pembatas vertikal di mobile lebih rapi.
 
 ## 0.4.4 — Oktober 2026
