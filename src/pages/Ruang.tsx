@@ -86,7 +86,7 @@ export default function RuangPage() {
   const adaAset = edit?.id ? (jumlahAset.get(edit.id) ?? 0) : 0
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="w-full">
       <PageHeader
         judul="Ruang"
         keterangan="Daftar ruang dan jumlah jenis aset di dalamnya"
