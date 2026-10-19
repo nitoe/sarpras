@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 — Oktober 2026
+- **Halaman Pemeliharaan (Sesi 2):** daftar jadwal, filter (aktif/terlambat/7 hari/nonaktif, jenis, ruang), StatStrip.
+- Admin: tambah/ubah/hapus jadwal (ruang atau aset, kegiatan, periode, jatuh tempo).
+- Admin & petugas: tandai selesai + catatan; opsi majukan jatuh tempo otomatis sesuai periode.
+
 ## 0.5.0 — Oktober 2026
 - **Fase 2 fondasi (Sesi 1):** tipe `Pemeliharaan` & `Usulan`, menu + route, halaman placeholder.
 - Aturan Firestore `sarpras_pemeliharaan` (admin kelola; petugas tandai selesai) dan `sarpras_usulan` (staf ajukan; pimpinan setujui/tolak; pengusul batalkan).
