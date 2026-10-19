@@ -62,12 +62,16 @@ export const namaStatus = (v: string) => STATUS_KERUSAKAN.find((s) => s.v === v)
 export const STATUS_PEMINJAMAN = [
   { v: 'diajukan', l: 'Diajukan' },
   { v: 'disetujui', l: 'Disetujui' },
+  { v: 'pengembalian', l: 'Menunggu pengembalian' },
   { v: 'ditolak', l: 'Ditolak' },
   { v: 'selesai', l: 'Selesai' },
   { v: 'dibatalkan', l: 'Dibatalkan' },
 ] as const
 export type StatusPeminjaman = (typeof STATUS_PEMINJAMAN)[number]['v']
 export const namaStatusPeminjaman = (v: string) => STATUS_PEMINJAMAN.find((s) => s.v === v)?.l ?? v
+
+/** Status yang masih “mengunci” stok alat. */
+export const STATUS_STOK_AKTIF: StatusPeminjaman[] = ['diajukan', 'disetujui', 'pengembalian']
 
 export type JenisPeminjaman = 'ruang' | 'alat'
 
@@ -97,6 +101,7 @@ export interface Kerusakan {
  * - jenis 'ruang' (atau kosong untuk data lama): field ruangId wajib.
  * - jenis 'alat': field asetId dan jumlahPinjam wajib; ruangId opsional/kosong.
  * mulai/selesai: ISO lokal tanpa detik (YYYY-MM-DDTHH:mm).
+ * Alur alat: diajukan → disetujui → pengembalian (oleh peminjam) → selesai (oleh admin).
  */
 export interface Peminjaman {
   id: string
@@ -113,6 +118,8 @@ export interface Peminjaman {
   peminjamUid: string
   peminjamNama: string
   catatanAdmin?: string
+  /** Catatan saat peminjam mengajukan pengembalian alat. */
+  catatanPengembalian?: string
   createdAt?: Waktu | null
   updatedAt?: Waktu | null
 }
@@ -152,7 +159,7 @@ export function bentrokJadwal(mulaiA: string, selesaiA: string, mulaiB: string, 
 }
 
 /**
- * Jumlah unit alat yang sudah terpakai (diajukan/disetujui) pada rentang waktu,
+ * Jumlah unit alat yang sudah terpakai (masih aktif) pada rentang waktu,
  * tidak termasuk id pengajuan yang diabaikan (untuk cek saat menyetujui sendiri).
  */
 export function stokTerpakai(
@@ -168,7 +175,7 @@ export function stokTerpakai(
         p.id !== kecualiId &&
         jenisPinjam(p) === 'alat' &&
         p.asetId === asetId &&
-        (p.status === 'diajukan' || p.status === 'disetujui') &&
+        STATUS_STOK_AKTIF.includes(p.status) &&
         bentrokJadwal(mulai, selesai, p.mulai, p.selesai),
     )
     .reduce((n, p) => n + (p.jumlahPinjam ?? 1), 0)

@@ -1,4 +1,4 @@
-// ============================================================================
+// ==============================================================================
 // ATURAN SARPRAS — untuk DITEMPEL ke firestore.rules di repo SDM01Penilaian
 // (satu project Firebase hanya punya satu berkas rules; repo sarpras TIDAK
 // men-deploy rules supaya aturan Penilaian tidak tertimpa).
@@ -7,7 +7,7 @@
 //           tepat setelah fungsi `isGuruAkademik()`.
 // Bagian B: tempel blok `match` ini tepat SEBELUM blok "Default: tolak semuanya".
 // Sesudah itu: uji, lalu `npm run deploy:rules` di repo SDM01Penilaian.
-// ============================================================================
+// ==============================================================================
 
 
 // ───────────────────────── BAGIAN A: fungsi ─────────────────────────
@@ -80,7 +80,8 @@
     }
 
     // Peminjaman: staf mengajukan atas namanya sendiri (status awal 'diajukan');
-    // admin memutuskan; peminjam hanya boleh membatalkan pengajuannya sendiri.
+    // admin memutuskan; peminjam boleh membatalkan pengajuan sendiri;
+    // peminjam alat yang disetujui boleh mengajukan pengembalian (status 'pengembalian').
     match /sarpras_peminjaman/{id} {
       allow read: if sarprasStaf();
       allow create: if sarprasStaf()
@@ -91,7 +92,13 @@
                         && resource.data.status == 'diajukan'
                         && request.resource.data.diff(resource.data).affectedKeys()
                              .hasOnly(['status', 'updatedAt'])
-                        && request.resource.data.status == 'dibatalkan');
+                        && request.resource.data.status == 'dibatalkan')
+                    || (akunAktif() && resource.data.peminjamUid == request.auth.uid
+                        && resource.data.status == 'disetujui'
+                        && resource.data.get('jenis', '') == 'alat'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['status', 'catatanPengembalian', 'updatedAt'])
+                        && request.resource.data.status == 'pengembalian');
       allow delete: if false;
     }
 

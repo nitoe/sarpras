@@ -2,6 +2,12 @@
 
 Riwayat perubahan (tambahkan di bagian atas, jangan menghapus entri lama).
 
+## 0.4.2 — Oktober 2026
+- Halaman **Pengembalian** alat: peminjam mengajukan pengembalian untuk alat yang statusnya Disetujui; admin mengonfirmasi diterima atau menolak (status kembali Disetujui).
+- Status baru `pengembalian` (Menunggu pengembalian); field `catatanPengembalian`.
+- Aturan Firestore: peminjam boleh mengubah `disetujui` → `pengembalian` (+ catatanPengembalian) hanya untuk jenis alat.
+- Stok alat tetap terhitung selama status `pengembalian` (belum dikonfirmasi selesai).
+
 ## 0.4.1 — Oktober 2026
 - Modul Peminjaman diperluas: selain ruangan, staf dapat meminjam **alat** (aset).
 - Form ajukan: pilih jenis Ruangan atau Alat; untuk alat pilih aset, jumlah unit, waktu, keperluan.
