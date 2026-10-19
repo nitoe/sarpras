@@ -9,6 +9,7 @@ import {
   type Aset, type Kondisi, type Ruang,
 } from '../lib/tipe'
 import { Field, Modal, Notice, PageHeader, StatStrip, btnDanger, btnGhost, btnPrimary, inputCls } from '../components/ui'
+import { stempelTanggal, unduhCsv } from '../lib/unduh'
 
 interface FormAset {
   nama: string
@@ -176,15 +177,37 @@ export default function AsetPage() {
   const setF = (p: Partial<FormAset>) => edit && setEdit({ ...edit, f: { ...edit.f, ...p } })
   const judulRuang = fRuang ? petaRuang.get(fRuang)?.nama : undefined
 
+  function unduhDaftar() {
+    unduhCsv(
+      `aset-sarpras-${stempelTanggal()}.csv`,
+      ['Kode', 'Nama', 'Kategori', 'Ruang', 'Jumlah', 'Kondisi', 'Tahun', 'Sumber', 'Nilai', 'Catatan'],
+      tampil.map((x) => [
+        x.kode,
+        x.nama,
+        namaKategori(x.kategori),
+        petaRuang.get(x.ruangId)?.nama ?? '',
+        x.jumlah,
+        namaKondisi(x.kondisi),
+        x.tahun ?? '',
+        x.sumber ?? '',
+        lihatNilai && x.nilai != null ? x.nilai : '',
+        x.catatan ?? '',
+      ]),
+    )
+  }
+
   return (
     <div className="w-full">
       <PageHeader
         judul={judulRuang ? `Aset — ${judulRuang}` : 'Aset'}
         keterangan="Daftar barang, jumlah, dan kondisinya"
         aksi={
-          <div className="flex gap-2 print:hidden">
-            <button className={btnGhost} onClick={() => window.print()}>Cetak</button>
-            {admin && <button className={btnPrimary} onClick={() => buka()}>Tambah aset</button>}
+          <div className="flex flex-wrap gap-2 print:hidden">
+            <button type="button" className={btnGhost} onClick={() => window.print()}>Cetak</button>
+            <button type="button" className={btnGhost} onClick={unduhDaftar} disabled={tampil.length === 0}>
+              Unduh Excel
+            </button>
+            {admin && <button type="button" className={btnPrimary} onClick={() => buka()}>Tambah aset</button>}
           </div>
         }
       />
