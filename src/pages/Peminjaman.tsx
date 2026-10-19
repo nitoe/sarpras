@@ -8,6 +8,7 @@ import {
   type Aset, type JenisPeminjaman, type Peminjaman, type Ruang, type StatusPeminjaman,
 } from '../lib/tipe'
 import { Field, Modal, Notice, PageHeader, StatStrip, btnDanger, btnGhost, btnPrimary, inputCls } from '../components/ui'
+import { stempelTanggal, unduhCsv } from '../lib/unduh'
 
 const gayaStatus: Record<string, string> = {
   diajukan: 'border-amber-200 bg-amber-50 text-amber-800',
@@ -111,12 +112,37 @@ export default function PeminjamanPage() {
 
   const terpilih = pilih ? (pinjam.data.find((p) => p.id === pilih.id) ?? pilih) : null
 
+  function unduhDaftar() {
+    unduhCsv(
+      `peminjaman-sarpras-${stempelTanggal()}.csv`,
+      ['Jenis', 'Yang dipinjam', 'Keperluan', 'Mulai', 'Selesai', 'Status', 'Peminjam', 'Jumlah', 'Catatan admin'],
+      tampil.map((x) => [
+        jenisPinjam(x) === 'alat' ? 'Alat' : 'Ruangan',
+        labelSasaran(x, petaRuang, petaAset),
+        x.keperluan,
+        x.mulai,
+        x.selesai,
+        namaStatusPeminjaman(x.status),
+        x.peminjamNama,
+        x.jumlahPinjam ?? '',
+        x.catatanAdmin ?? '',
+      ]),
+    )
+  }
+
   return (
     <div className="w-full">
       <PageHeader
         judul="Peminjaman"
         keterangan="Ajukan dan kelola peminjaman ruangan atau alat"
-        aksi={<button className={btnPrimary} onClick={() => setBaru(true)}>Ajukan peminjaman</button>}
+        aksi={
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={btnGhost} onClick={unduhDaftar} disabled={tampil.length === 0}>
+              Unduh Excel
+            </button>
+            <button type="button" className={btnPrimary} onClick={() => setBaru(true)}>Ajukan peminjaman</button>
+          </div>
+        }
       />
       {(pinjam.galat || ruang.galat || aset.galat) && (
         <Notice tipe="error">{pinjam.galat || ruang.galat || aset.galat}</Notice>
