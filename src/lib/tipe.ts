@@ -128,6 +128,72 @@ export function jenisPinjam(p: Peminjaman): JenisPeminjaman {
   return p.jenis === 'alat' ? 'alat' : 'ruang'
 }
 
+// ---- Fase 2: Pemeliharaan & Usulan ------------------------------------------
+
+export const PERIODE_PEMELIHARAAN = [
+  { v: 'mingguan', l: 'Mingguan' },
+  { v: 'bulanan', l: 'Bulanan' },
+  { v: 'triwulan', l: 'Triwulan' },
+  { v: 'semester', l: 'Semester' },
+  { v: 'tahunan', l: 'Tahunan' },
+] as const
+export type PeriodePemeliharaan = (typeof PERIODE_PEMELIHARAAN)[number]['v']
+export const namaPeriode = (v: string) => PERIODE_PEMELIHARAAN.find((p) => p.v === v)?.l ?? v
+
+export type JenisPemeliharaan = 'ruang' | 'aset'
+
+/**
+ * Jadwal pemeliharaan rutin.
+ * jatuhTempo / terakhirDilakukan: YYYY-MM-DD.
+ * Setelah ditandai selesai, admin/petugas mengisi terakhirDilakukan dan boleh memajukan jatuhTempo.
+ */
+export interface Pemeliharaan {
+  id: string
+  jenis: JenisPemeliharaan
+  ruangId?: string | null
+  asetId?: string | null
+  kegiatan: string
+  periode: PeriodePemeliharaan | string
+  jatuhTempo: string
+  terakhirDilakukan?: string | null
+  petugasUid?: string | null
+  petugasNama?: string
+  catatan?: string
+  /** nonaktif = jadwal dihentikan tanpa dihapus */
+  aktif?: boolean
+  createdBy?: string
+  createdAt?: Waktu | null
+  updatedAt?: Waktu | null
+}
+
+export const STATUS_USULAN = [
+  { v: 'diajukan', l: 'Diajukan' },
+  { v: 'disetujui', l: 'Disetujui' },
+  { v: 'ditolak', l: 'Ditolak' },
+  { v: 'selesai', l: 'Selesai' },
+  { v: 'dibatalkan', l: 'Dibatalkan' },
+] as const
+export type StatusUsulan = (typeof STATUS_USULAN)[number]['v']
+export const namaStatusUsulan = (v: string) => STATUS_USULAN.find((s) => s.v === v)?.l ?? v
+
+/**
+ * Usulan pengadaan atau perbaikan.
+ * Alur: diajukan → disetujui/ditolak (pimpinan/admin) → selesai (admin); pengusul boleh batalkan saat diajukan.
+ */
+export interface Usulan {
+  id: string
+  /** Nama barang atau kegiatan yang diusulkan */
+  barang: string
+  alasan: string
+  perkiraanBiaya?: number | null
+  status: StatusUsulan
+  pengusulUid: string
+  pengusulNama: string
+  catatanAdmin?: string
+  createdAt?: Waktu | null
+  updatedAt?: Waktu | null
+}
+
 export function formatTanggal(w?: Waktu | null) {
   if (!w) return 'baru saja'
   return w.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
